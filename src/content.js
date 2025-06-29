@@ -213,17 +213,23 @@
         // Hide UI on click outside
         document.addEventListener('mousedown', function(e) {
             // Don't interfere with input fields
-            if (e.target.tagName === 'INPUT' || 
-                e.target.tagName === 'TEXTAREA' ||
-                e.target.contentEditable === 'true' ||
-                e.target.closest('input, textarea, [contenteditable="true"]')) {
+            const target = e.target;
+            const element = target.nodeType === Node.ELEMENT_NODE ? target : target.parentElement;
+            
+            if (element && (
+                element.tagName === 'INPUT' || 
+                element.tagName === 'TEXTAREA' ||
+                element.contentEditable === 'true' ||
+                (typeof element.closest === 'function' && element.closest('input, textarea, [contenteditable="true"]')))) {
                 hideHighlightButton();
                 hideMiniToolbar();
                 return;
             }
             
-            if (!e.target.closest('#web-highlighter-button-container') && 
-                !e.target.closest('#web-highlighter-toolbar')) {
+            if (!element || (
+                (typeof element.closest === 'function' && 
+                 !element.closest('#web-highlighter-button-container') && 
+                 !element.closest('#web-highlighter-toolbar')))) {
                 hideHighlightButton();
                 hideMiniToolbar();
             }
@@ -281,10 +287,14 @@
         // Skip if the event originated from an input, textarea, or contenteditable
         if (e && e.target) {
             const target = e.target;
-            if (target.tagName === 'INPUT' || 
-                target.tagName === 'TEXTAREA' ||
-                target.contentEditable === 'true' ||
-                target.closest('input, textarea, [contenteditable="true"]')) {
+            // Ensure target is an Element node before using closest
+            const element = target.nodeType === Node.ELEMENT_NODE ? target : target.parentElement;
+            
+            if (element && (
+                element.tagName === 'INPUT' || 
+                element.tagName === 'TEXTAREA' ||
+                element.contentEditable === 'true' ||
+                (typeof element.closest === 'function' && element.closest('input, textarea, [contenteditable="true"]')))) {
                 return;
             }
         }
@@ -302,7 +312,8 @@
                 parentElement.tagName === 'INPUT' || 
                 parentElement.tagName === 'TEXTAREA' ||
                 parentElement.contentEditable === 'true' ||
-                parentElement.closest('input, textarea, [contenteditable="true"]'))) {
+                (typeof parentElement.closest === 'function' && 
+                 parentElement.closest('input, textarea, [contenteditable="true"]')))) {
                 hideHighlightButton();
                 return;
             }
