@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Web Highlighter - Save Text Highlights",
+  "version": "1.0.0",
+  "description": "Highlight important text on any website. Your highlights are saved automatically.",
+  
+  "permissions": [
+    "storage",
+    "activeTab",
+    "contextMenus"
+  ],
+  
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["src/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  
+  "action": {
+    "default_popup": "src/popup.html"
+  }
+}
