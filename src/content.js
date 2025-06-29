@@ -472,42 +472,108 @@
     
     // Apply highlight to range
     function applyHighlight(range, id, color) {
-        const span = document.createElement('span');
-        span.className = 'web-highlighter-highlight';
-        span.dataset.highlightId = id;
-        span.dataset.color = color;
-        span.style.cssText = `
-            background-color: ${HIGHLIGHT_COLORS[color].bg};
-            border-bottom: 2px solid ${HIGHLIGHT_COLORS[color].border};
-            cursor: pointer;
-            transition: all 0.2s;
-        `;
-        
-        // Add hover effect
-        span.addEventListener('mouseenter', function() {
-            this.style.filter = 'brightness(0.9)';
-        });
-        
-        span.addEventListener('mouseleave', function() {
-            this.style.filter = 'brightness(1)';
-        });
-        
-        // Add click handler
-        span.addEventListener('click', function(e) {
-            e.stopPropagation();
-            currentHighlightId = id;
-            const rect = this.getBoundingClientRect();
-            showMiniToolbar(rect);
-        });
-        
         try {
-            range.surroundContents(span);
+            // Get all text nodes in the range
+            const textNodes = getTextNodesInRange(range);
+            
+            textNodes.forEach(node => {
+                // Create a new range for each text node
+                const nodeRange = document.createRange();
+                
+                // Set the range boundaries within the text node
+                if (node === range.startContainer && node === range.endContainer) {
+                    nodeRange.setStart(node, range.startOffset);
+                    nodeRange.setEnd(node, range.endOffset);
+                } else if (node === range.startContainer) {
+                    nodeRange.setStart(node, range.startOffset);
+                    nodeRange.setEnd(node, node.textContent.length);
+                } else if (node === range.endContainer) {
+                    nodeRange.setStart(node, 0);
+                    nodeRange.setEnd(node, range.endOffset);
+                } else {
+                    nodeRange.selectNodeContents(node);
+                }
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'web-highlighter-highlight';
+                span.dataset.highlightId = id;
+                span.dataset.color = color;
+                span.style.cssText = `
+                    background-color: ${HIGHLIGHT_COLORS[color].bg};
+                    border-bottom: 2px solid ${HIGHLIGHT_COLORS[color].border};
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    display: inline;
+                `;
+                
+                // Add hover effect
+                span.addEventListener('mouseenter', function() {
+                    this.style.filter = 'brightness(0.9)';
+                });
+                
+                span.addEventListener('mouseleave', function() {
+                    this.style.filter = 'brightness(1)';
+                });
+                
+                // Add click handler
+                span.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    currentHighlightId = id;
+                    const rect = this.getBoundingClientRect();
+                    showMiniToolbar(rect);
+                });
+                
+                // Wrap the text node content
+                try {
+                    nodeRange.surroundContents(span);
+                } catch (e) {
+                    // If surroundContents fails, manually wrap
+                    const contents = nodeRange.extractContents();
+                    span.appendChild(contents);
+                    nodeRange.insertNode(span);
+                }
+            });
         } catch (e) {
-            // If surroundContents fails, use alternative method
-            const contents = range.extractContents();
-            span.appendChild(contents);
-            range.insertNode(span);
+            console.error('Error applying highlight:', e);
         }
+    }
+    
+    // Get all text nodes within a range
+    function getTextNodesInRange(range) {
+        const textNodes = [];
+        const commonAncestor = range.commonAncestorContainer;
+        
+        // If the common ancestor is a text node itself
+        if (commonAncestor.nodeType === Node.TEXT_NODE) {
+            return [commonAncestor];
+        }
+        
+        // Walk through all nodes in the range
+        const walker = document.createTreeWalker(
+            commonAncestor,
+            NodeFilter.SHOW_TEXT,
+            {
+                acceptNode: function(node) {
+                    const nodeRange = document.createRange();
+                    nodeRange.selectNodeContents(node);
+                    
+                    // Check if this text node intersects with our range
+                    if (range.compareBoundaryPoints(Range.END_TO_START, nodeRange) <= 0 &&
+                        range.compareBoundaryPoints(Range.START_TO_END, nodeRange) >= 0) {
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                    return NodeFilter.FILTER_REJECT;
+                }
+            }
+        );
+        
+        let node;
+        while (node = walker.nextNode()) {
+            textNodes.push(node);
+        }
+        
+        return textNodes;
     }
     
     // Show mini toolbar
