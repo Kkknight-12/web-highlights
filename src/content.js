@@ -4,7 +4,7 @@
     
     // Early exit if no chrome runtime
     if (typeof chrome === 'undefined' || !chrome.runtime) {
-        console.log('Chrome Web Highlighter: Chrome runtime not available');
+        // Chrome runtime not available - exit silently
         return;
     }
     
@@ -39,7 +39,7 @@
     
     // Cleanup function when context is invalidated
     function cleanup() {
-        console.log('Chrome Web Highlighter: Extension context invalidated, cleaning up...');
+        // Extension context invalidated, cleaning up...
         
         // Remove all event listeners
         document.removeEventListener('mouseup', handleTextSelection);
@@ -63,7 +63,7 @@
         // Reset state
         highlightsLoaded = false;
         
-        console.log('Chrome Web Highlighter: Cleanup completed');
+        // Cleanup completed
     }
     
     // Check context validity periodically
@@ -72,11 +72,10 @@
             isOrphaned = true;
             clearInterval(contextCheckInterval);
             // Don't cleanup - keep UI functional
-            console.log('Chrome Web Highlighter: Context check failed but keeping UI');
+            // Context check failed but keeping UI
         }
     }, 5000);
     
-    console.log('Chrome Web Highlighter loaded');
     
     // Constants
     const HIGHLIGHT_COLORS = {
@@ -103,11 +102,11 @@
     
     // Initialize the extension
     function initialize() {
-        console.log('Chrome Web Highlighter: Initializing...');
+        // Initializing...
         
         // Don't check context validity for UI creation
         if (!document.body) {
-            console.warn('Chrome Web Highlighter: No document.body, waiting...');
+            // No document.body, waiting...
             return;
         }
         
@@ -125,7 +124,7 @@
             // Set up observer for dynamic content
             observeDOMChanges();
         } else {
-            console.log('Chrome Web Highlighter: Context invalid, but UI is ready');
+            // Context invalid, but UI is ready
         }
     }
     
@@ -133,7 +132,7 @@
     function createUI() {
         // Don't create UI if already exists
         if (highlightButtonContainer) {
-            console.log('Chrome Web Highlighter: UI already created');
+            // UI already created
             return;
         }
         
@@ -153,19 +152,20 @@
         highlightButton.style.cssText = `
             background: white;
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 8px 12px;
+            border-radius: 24px;
+            padding: 10px 16px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
             font-size: 14px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #374151;
             font-weight: 500;
             line-height: 1.5;
             transition: all 0.2s;
+            min-height: 40px;
         `;
         
         highlightButton.innerHTML = `
@@ -186,12 +186,12 @@
             transform: translateY(-50%);
             margin-left: 8px;
             display: none;
-            gap: 4px;
+            gap: 6px;
             background: white;
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 6px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            border-radius: 20px;
+            padding: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
         `;
         
         // Add color buttons
@@ -199,17 +199,29 @@
             const colorBtn = document.createElement('button');
             colorBtn.className = 'color-btn';
             colorBtn.style.cssText = `
-                width: 24px;
-                height: 24px;
-                border-radius: 4px;
-                border: 2px solid transparent;
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                border: 2px solid #ffffff;
                 background-color: ${colorValue.bg};
                 cursor: pointer;
                 transition: all 0.2s;
                 margin: 0 2px;
+                box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.15);
+                position: relative;
             `;
             colorBtn.dataset.color = colorKey;
             colorBtn.title = colorValue.name;
+            
+            colorBtn.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1)';
+                this.style.borderColor = colorValue.border;
+            });
+            
+            colorBtn.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+                this.style.borderColor = '#ffffff';
+            });
             
             colorBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -226,7 +238,7 @@
         highlightButtonContainer.appendChild(colorPicker);
         document.body.appendChild(highlightButtonContainer);
         
-        console.log('Chrome Web Highlighter: Button container created and added to DOM');
+        // Button container created and added to DOM
         
         // Create mini toolbar
         createMiniToolbar();
@@ -243,27 +255,39 @@
             position: absolute;
             z-index: 2147483647;
             display: none;
-            background: white;
+            background: #ffffff;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             padding: 4px;
             gap: 4px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
         `;
         
         miniToolbar.innerHTML = `
-            <button class="toolbar-btn" data-action="copy" title="Copy text" style="background: none; border: none; padding: 6px; cursor: pointer; border-radius: 4px;">
+            <button class="toolbar-btn" data-action="copy" title="Copy text" style="background: none; border: none; padding: 6px; cursor: pointer; border-radius: 4px; color: #374151; transition: all 0.2s;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
-                    <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="currentColor" stroke-width="2"/>
+                    <rect x="9" y="9" width="13" height="13" rx="2" stroke="#374151" stroke-width="2"/>
+                    <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="#374151" stroke-width="2"/>
                 </svg>
             </button>
-            <button class="toolbar-btn" data-action="remove" title="Remove highlight" style="background: none; border: none; padding: 6px; cursor: pointer; border-radius: 4px;">
+            <button class="toolbar-btn" data-action="remove" title="Remove highlight" style="background: none; border: none; padding: 6px; cursor: pointer; border-radius: 4px; color: #374151; transition: all 0.2s;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 6L18 18M6 18L18 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M6 6L18 18M6 18L18 6" stroke="#374151" stroke-width="2" stroke-linecap="round"/>
                 </svg>
             </button>
         `;
+        
+        // Add hover styles
+        const style = document.createElement('style');
+        style.textContent = `
+            #web-highlighter-toolbar .toolbar-btn:hover {
+                background-color: #f3f4f6 !important;
+            }
+            #web-highlighter-toolbar .toolbar-btn:active {
+                background-color: #e5e7eb !important;
+            }
+        `;
+        document.head.appendChild(style);
         
         document.body.appendChild(miniToolbar);
     }
@@ -423,8 +447,6 @@
     
     // Handle text selection
     function handleTextSelection(e) {
-        console.log('Chrome Web Highlighter: Text selection event triggered');
-        
         // Skip if the event originated from an input, textarea, or contenteditable
         if (e && e.target) {
             const target = e.target;
@@ -470,12 +492,12 @@
             const rect = selectedRange.getBoundingClientRect();
             if (rect.width > 0 && rect.height > 0) {
                 if (!highlightButtonContainer) {
-                    console.warn('Chrome Web Highlighter: Button container not initialized');
+                    // Button container not initialized
                     return;
                 }
                 showHighlightButton(rect);
             } else {
-                console.warn('Chrome Web Highlighter: Selection rect has no size');
+                // Selection rect has no size
             }
         } else {
             hideHighlightButton();
@@ -493,12 +515,99 @@
             highlightButtonContainer.style.left = left + 'px';
             highlightButtonContainer.style.top = top + 'px';
             highlightButtonContainer.style.display = 'flex';
+            
+            // Detect background color and adjust button colors
+            adjustHighlightButtonForBackground();
         } catch (error) {
             // Silently fail if context is invalid
             if (!error.message?.includes('Extension context invalidated') && 
                 !error.message?.includes('Cannot access a chrome')) {
                 console.error('Error showing highlight button:', error);
             }
+        }
+    }
+    
+    // Adjust highlight button colors based on background
+    function adjustHighlightButtonForBackground() {
+        if (!highlightButton || !colorPicker) return;
+        
+        try {
+            // Get the background color at the button position
+            const element = document.elementFromPoint(
+                parseFloat(highlightButtonContainer.style.left), 
+                parseFloat(highlightButtonContainer.style.top) - 10
+            );
+            
+            if (!element) return;
+            
+            // Get computed background color
+            let bgColor = window.getComputedStyle(element).backgroundColor;
+            let currentElement = element;
+            
+            // Walk up the DOM tree to find a non-transparent background
+            while (bgColor === 'rgba(0, 0, 0, 0)' || bgColor === 'transparent') {
+                currentElement = currentElement.parentElement;
+                if (!currentElement || currentElement === document.body) {
+                    bgColor = window.getComputedStyle(document.body).backgroundColor;
+                    break;
+                }
+                bgColor = window.getComputedStyle(currentElement).backgroundColor;
+            }
+            
+            // Calculate if background is dark
+            const isDark = isColorDark(bgColor);
+            
+            // Apply appropriate styles
+            if (isDark) {
+                // Dark background - use light colors
+                highlightButton.style.background = '#374151';
+                highlightButton.style.borderColor = '#4b5563';
+                highlightButton.style.color = '#f3f4f6';
+                highlightButton.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+                
+                // Update SVG colors
+                const paths = highlightButton.querySelectorAll('path');
+                paths.forEach(path => {
+                    if (!path.getAttribute('fill') || path.getAttribute('fill') === '#374151') {
+                        path.setAttribute('stroke', '#f3f4f6');
+                    }
+                });
+                
+                // Update text color
+                const span = highlightButton.querySelector('span');
+                if (span) span.style.color = '#f3f4f6';
+                
+                // Update color picker
+                colorPicker.style.background = '#374151';
+                colorPicker.style.borderColor = '#4b5563';
+                colorPicker.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+            } else {
+                // Light background - use dark colors
+                highlightButton.style.background = '#ffffff';
+                highlightButton.style.borderColor = '#e5e7eb';
+                highlightButton.style.color = '#374151';
+                highlightButton.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)';
+                
+                // Update SVG colors
+                const paths = highlightButton.querySelectorAll('path');
+                paths.forEach(path => {
+                    if (!path.getAttribute('fill') || path.getAttribute('fill') === '#f3f4f6') {
+                        path.setAttribute('stroke', '#374151');
+                    }
+                });
+                
+                // Update text color
+                const span = highlightButton.querySelector('span');
+                if (span) span.style.color = '#374151';
+                
+                // Update color picker
+                colorPicker.style.background = '#ffffff';
+                colorPicker.style.borderColor = '#e5e7eb';
+                colorPicker.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)';
+            }
+        } catch (error) {
+            // Silently fail on error
+            console.warn('Could not detect background color for button:', error);
         }
     }
     
@@ -708,6 +817,10 @@
             miniToolbar.style.left = left + 'px';
             miniToolbar.style.top = top + 'px';
             miniToolbar.style.display = 'flex';
+            
+            // Detect if background is dark and adjust toolbar colors
+            // Pass the rect so we can check the background near the highlight
+            adjustToolbarForBackground(rect);
         } catch (error) {
             // Silently fail if context is invalid
             if (!error.message?.includes('Extension context invalidated') && 
@@ -715,6 +828,91 @@
                 console.error('Error showing mini toolbar:', error);
             }
         }
+    }
+    
+    // Detect background color and adjust toolbar
+    function adjustToolbarForBackground(rect) {
+        if (!miniToolbar) return;
+        
+        try {
+            // Get the background color near the highlighted text (using the rect)
+            // Check at the middle of the highlight to get accurate background
+            const element = document.elementFromPoint(
+                rect ? rect.left + rect.width / 2 : parseFloat(miniToolbar.style.left), 
+                rect ? rect.top + rect.height / 2 : parseFloat(miniToolbar.style.top) - 10
+            );
+            
+            if (!element) return;
+            
+            // Get computed background color
+            let bgColor = window.getComputedStyle(element).backgroundColor;
+            let currentElement = element;
+            
+            // Walk up the DOM tree to find a non-transparent background
+            while (bgColor === 'rgba(0, 0, 0, 0)' || bgColor === 'transparent') {
+                currentElement = currentElement.parentElement;
+                if (!currentElement || currentElement === document.body) {
+                    bgColor = window.getComputedStyle(document.body).backgroundColor;
+                    break;
+                }
+                bgColor = window.getComputedStyle(currentElement).backgroundColor;
+            }
+            
+            // Calculate if background is dark
+            const isDark = isColorDark(bgColor);
+            
+            // Apply appropriate styles
+            if (isDark) {
+                miniToolbar.style.background = '#374151';
+                miniToolbar.style.borderColor = '#4b5563';
+                miniToolbar.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+                
+                const buttons = miniToolbar.querySelectorAll('.toolbar-btn');
+                buttons.forEach(btn => {
+                    btn.style.color = '#f3f4f6';
+                    const svgElements = btn.querySelectorAll('rect, path');
+                    svgElements.forEach(svg => {
+                        svg.setAttribute('stroke', '#f3f4f6');
+                    });
+                });
+            } else {
+                miniToolbar.style.background = '#ffffff';
+                miniToolbar.style.borderColor = '#e5e7eb';
+                miniToolbar.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)';
+                
+                const buttons = miniToolbar.querySelectorAll('.toolbar-btn');
+                buttons.forEach(btn => {
+                    btn.style.color = '#374151';
+                    const svgElements = btn.querySelectorAll('rect, path');
+                    svgElements.forEach(svg => {
+                        svg.setAttribute('stroke', '#374151');
+                    });
+                });
+            }
+        } catch (error) {
+            // Silently fail on error
+            console.warn('Could not detect background color:', error);
+        }
+    }
+    
+    // Check if a color is dark
+    function isColorDark(color) {
+        // Default to light if we can't parse
+        if (!color) return false;
+        
+        // Parse rgb/rgba values
+        const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (!match) return false;
+        
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        
+        // Calculate luminance
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        
+        // Consider dark if luminance is less than 0.5
+        return luminance < 0.5;
     }
     
     // Hide mini toolbar
@@ -908,7 +1106,7 @@
                 // Context invalidated - mark as orphaned but don't cleanup
                 // This allows UI to continue functioning
                 isOrphaned = true;
-                console.log('Chrome Web Highlighter: Context invalidated but keeping UI functional');
+                // Context invalidated but keeping UI functional
             }
         }
     }
@@ -1058,7 +1256,7 @@
     
     // Initialize when DOM is ready - skip chrome:// pages only
     if (!window.location.href.startsWith('chrome://')) {
-        console.log('Chrome Web Highlighter: Setting up initialization');
+        // Setting up initialization
         
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initialize);
@@ -1074,7 +1272,7 @@
         window.addEventListener('load', () => {
             // Try to initialize if not done yet
             if (!highlightButtonContainer) {
-                console.log('Chrome Web Highlighter: Fallback initialization on window load');
+                // Fallback initialization on window load
                 initialize();
             }
             
@@ -1084,6 +1282,6 @@
             }
         });
     } else {
-        console.log('Chrome Web Highlighter: Not initializing (chrome:// page)');
+        // Not initializing (chrome:// page)
     }
 })();
