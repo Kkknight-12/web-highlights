@@ -485,7 +485,13 @@
         },
         
         async loadHighlights() {
-            if (state.isOrphaned || !ContextValidator.isValid() || state.highlightsLoaded) {
+            if (state.isOrphaned || !ContextValidator.isValid()) {
+                return;
+            }
+            
+            // Check if highlights already exist to avoid duplicates
+            const existingHighlights = document.querySelectorAll('.web-highlighter-highlight');
+            if (existingHighlights.length > 0 && state.highlightsLoaded) {
                 return;
             }
             
@@ -493,9 +499,7 @@
                 const highlights = await StorageManager.getHighlights();
                 const pageHighlights = highlights.filter(h => h.url === window.location.href);
                 
-                if (pageHighlights.length > 0) {
-                    state.highlightsLoaded = true;
-                }
+                state.highlightsLoaded = true;
                 
                 pageHighlights.forEach(highlight => {
                     try {
@@ -780,6 +784,11 @@
         },
         
         showHighlightButton(rect) {
+            // Check if button exists in DOM, create if needed
+            if (!state.highlightButtonContainer || !document.getElementById('web-highlighter-button-container')) {
+                this.createUI();
+            }
+            
             if (!state.highlightButtonContainer) return;
             
             try {
@@ -1020,12 +1029,29 @@
         },
         
         createUI() {
-            if (state.highlightButtonContainer) {
-                return;
+            // Check if elements actually exist in DOM, not just in state
+            const existingContainer = document.getElementById('web-highlighter-button-container');
+            const existingToolbar = document.getElementById('web-highlighter-toolbar');
+            
+            // Clean up state if elements don't exist in DOM
+            if (!existingContainer && state.highlightButtonContainer) {
+                state.highlightButtonContainer = null;
+                state.highlightButton = null;
+                state.colorPicker = null;
             }
             
-            this.createHighlightButton();
-            this.createMiniToolbar();
+            if (!existingToolbar && state.miniToolbar) {
+                state.miniToolbar = null;
+            }
+            
+            // Create elements if they don't exist
+            if (!state.highlightButtonContainer) {
+                this.createHighlightButton();
+            }
+            
+            if (!state.miniToolbar) {
+                this.createMiniToolbar();
+            }
         }
     };
     
@@ -1220,8 +1246,13 @@
                                );
                     });
                     
-                    if (hasSignificantChanges && !state.highlightsLoaded) {
-                        HighlightEngine.loadHighlights();
+                    if (hasSignificantChanges) {
+                        // Check if highlights need to be reloaded
+                        const existingHighlights = document.querySelectorAll('.web-highlighter-highlight');
+                        if (existingHighlights.length === 0 && !state.isOrphaned) {
+                            state.highlightsLoaded = false;
+                            HighlightEngine.loadHighlights();
+                        }
                     }
                 }, CONFIG.MUTATION_OBSERVER_DELAY);
             });
@@ -1256,6 +1287,10 @@
         if (!document.body) {
             return;
         }
+        
+        // Reset state for new page load
+        state.highlightsLoaded = false;
+        state.isOrphaned = false;
         
         // Create UI
         UIManager.createUI();
@@ -1300,8 +1335,13 @@
             initialize();
         }
         
-        if (!state.highlightsLoaded && ContextValidator.isValid()) {
-            setTimeout(() => HighlightEngine.loadHighlights(), CONFIG.WINDOW_LOAD_DELAY);
+        // Force highlight loading on page load
+        if (ContextValidator.isValid()) {
+            const existingHighlights = document.querySelectorAll('.web-highlighter-highlight');
+            if (existingHighlights.length === 0) {
+                state.highlightsLoaded = false;
+                setTimeout(() => HighlightEngine.loadHighlights(), CONFIG.WINDOW_LOAD_DELAY);
+            }
         }
     });
     
