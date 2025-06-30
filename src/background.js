@@ -22,14 +22,21 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 // Update badge with highlight count
 chrome.runtime.onMessage.addListener((message, sender) => {
-    if (message.action === 'updateBadge') {
-        const count = message.count || 0;
-        chrome.action.setBadgeText({
-            text: count > 0 ? count.toString() : '',
-            tabId: sender.tab.id
-        });
-        chrome.action.setBadgeBackgroundColor({
-            color: '#FFE066'
-        });
+    try {
+        if (message.action === 'updateBadge' && sender.tab?.id) {
+            const count = message.count || 0;
+            chrome.action.setBadgeText({
+                text: count > 0 ? count.toString() : '',
+                tabId: sender.tab.id
+            });
+            chrome.action.setBadgeBackgroundColor({
+                color: '#FFE066'
+            });
+        }
+    } catch (error) {
+        // Silently fail on context errors
+        if (!error.message?.includes('Extension context invalidated')) {
+            console.error('Error updating badge:', error);
+        }
     }
 });

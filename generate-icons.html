@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Extension Icons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .icon-container {
+            display: inline-block;
+            margin: 20px;
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        canvas {
+            border: 1px solid #ddd;
+            display: block;
+            margin-bottom: 10px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Web Highlighter Extension Icons</h1>
+    <p>Click each download button to save the icon. Save them in the assets/ folder.</p>
+    
+    <div class="icon-container">
+        <canvas id="icon16" width="16" height="16"></canvas>
+        <button onclick="downloadIcon('icon16', 16)">Download 16x16</button>
+    </div>
+    
+    <div class="icon-container">
+        <canvas id="icon48" width="48" height="48"></canvas>
+        <button onclick="downloadIcon('icon48', 48)">Download 48x48</button>
+    </div>
+    
+    <div class="icon-container">
+        <canvas id="icon128" width="128" height="128"></canvas>
+        <button onclick="downloadIcon('icon128', 128)">Download 128x128</button>
+    </div>
+
+    <script>
+        function drawIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Background
+            ctx.fillStyle = '#FFF9E6';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Scale factor
+            const scale = size / 128;
+            
+            // Draw highlighter pen
+            ctx.save();
+            ctx.scale(scale, scale);
+            
+            // Pen body
+            ctx.fillStyle = '#FFD700';
+            ctx.strokeStyle = '#FFA500';
+            ctx.lineWidth = 3;
+            
+            ctx.beginPath();
+            ctx.moveTo(30, 98);
+            ctx.lineTo(30, 40);
+            ctx.lineTo(40, 30);
+            ctx.lineTo(88, 30);
+            ctx.lineTo(98, 40);
+            ctx.lineTo(98, 98);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Pen tip
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath();
+            ctx.moveTo(40, 98);
+            ctx.lineTo(64, 118);
+            ctx.lineTo(88, 98);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Highlight mark
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+            ctx.globalAlpha = 0.6;
+            ctx.beginPath();
+            ctx.moveTo(20, 70);
+            ctx.lineTo(108, 70);
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+        
+        function downloadIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `icon${size}.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+        
+        // Draw all icons
+        drawIcon('icon16', 16);
+        drawIcon('icon48', 48);
+        drawIcon('icon128', 128);
+    </script>
+</body>
+</html>

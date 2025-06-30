@@ -58,3 +58,57 @@ Day 3: Start marketing
 Primary: Build email list (500+ subscribers)
 Secondary: Pro upgrades ($9 one-time)
 Future: Upsell to React Text Annotator ($79)
+
+## Troubleshooting
+
+If you encounter issues with the extension, please refer to:
+- **[TROUBLESHOOTING_LOG.md](TROUBLESHOOTING_LOG.md)** - Comprehensive log of all issues and solutions
+- **[EXTENSION_CONTEXT_FIX.md](EXTENSION_CONTEXT_FIX.md)** - Fixing "Extension context invalidated" errors
+- **[RELOAD_FIX.md](RELOAD_FIX.md)** - Fixing highlights disappearing on page reload
+- **[FIXES_APPLIED.md](FIXES_APPLIED.md)** - Summary of all fixes applied to the extension
+
+Common issues covered:
+- Extension context invalidation
+- Highlights not persisting across reloads
+- DOM manipulation errors
+- Storage synchronization problems
+- Highlight button not appearing
+
+## 🧪 Local Testing & Debugging
+
+### Quick Start Testing
+1. Open `chrome://extensions/`
+2. Enable "Developer mode"
+3. Click "Load unpacked" and select this folder
+4. Open `test/test.html` in Chrome
+5. Check console for debug information
+
+### Advanced Debugging
+See [LOCAL_TESTING_GUIDE.md](LOCAL_TESTING_GUIDE.md) for:
+- Setting up debug environment
+- Using debug console commands
+- Testing error scenarios
+- Performance monitoring
+
+### Debug Mode
+The extension includes a debug version with enhanced logging:
+```bash
+# Use debug version (Node.js required)
+node test-runner.js
+
+# Restore original version
+node test-runner.js --restore
+```
+
+### Console Commands
+When using debug version:
+```javascript
+// Get extension state
+__chromeHighlighterDebug.stats()
+
+// Test error handling
+__chromeHighlighterDebug.testError()
+
+// Force orphan state
+__chromeHighlighterDebug.forceOrphan()
+```

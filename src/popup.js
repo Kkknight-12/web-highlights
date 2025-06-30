@@ -198,48 +198,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupEventListeners();
 });
 
-// Compression utilities
+// No compression for MVP - keep it simple
 async function decompressHighlights(data) {
-    if (!data || !data._compressed || typeof LZString === 'undefined') {
-        return data || {};
-    }
-    
-    try {
-        const decompressed = LZString.decompressFromUTF16(data.data);
-        return JSON.parse(decompressed);
-    } catch (error) {
-        console.error('Decompression error:', error);
-        return {};
-    }
-}
-
-// Load compression library
-async function loadCompressionLibrary() {
-    return new Promise((resolve) => {
-        const script = document.createElement('script');
-        script.src = chrome.runtime.getURL('src/lz-string.min.js');
-        script.onload = resolve;
-        script.onerror = () => {
-            console.warn('Failed to load compression library');
-            resolve();
-        };
-        document.head.appendChild(script);
-    });
+    // Just return the data as-is
+    return data || [];
 }
 
 // Load highlights from storage for current tab
 async function loadHighlights() {
     try {
-        // Load compression library first
-        await loadCompressionLibrary();
-        
         const result = await chrome.storage.local.get(['highlights']);
-        const compressedData = result.highlights || {};
-        const allHighlights = await decompressHighlights(compressedData);
+        const allHighlights = result.highlights || [];
         
-        // Get highlights for current URL
-        const url = normalizeUrl(currentTab.url);
-        highlights = allHighlights[url] || [];
+        // Filter highlights for current URL
+        highlights = allHighlights.filter(h => h.url === currentTab.url);
         
         // Update UI
         updateHighlightsList();
@@ -620,19 +592,18 @@ async function copyToClipboard(text, successMessage) {
 // Delete a single highlight
 async function deleteHighlight(highlightId) {
     try {
-        // Remove from local array
-        highlights = highlights.filter(h => h.id !== highlightId);
-        
-        // Update storage with compression
+        // Get all highlights from storage
         const result = await chrome.storage.local.get(['highlights']);
-        const compressedData = result.highlights || {};
-        const allHighlights = await decompressHighlights(compressedData);
-        const url = normalizeUrl(currentTab.url);
-        allHighlights[url] = highlights;
+        const allHighlights = result.highlights || [];
         
-        // Compress before saving
-        const compressed = await compressHighlights(allHighlights);
-        await chrome.storage.local.set({ highlights: compressed });
+        // Filter out the deleted highlight
+        const updatedHighlights = allHighlights.filter(h => h.id !== highlightId);
+        
+        // Save back to storage
+        await chrome.storage.local.set({ highlights: updatedHighlights });
+        
+        // Update local array for this page
+        highlights = updatedHighlights.filter(h => h.url === currentTab.url);
         
         // Update UI
         updateHighlightsList();
@@ -654,44 +625,26 @@ async function deleteHighlight(highlightId) {
     }
 }
 
-// Compression utilities
+// No compression for MVP
 async function compressHighlights(highlights) {
-    if (typeof LZString === 'undefined') {
-        // LZString not available, return uncompressed
-        return highlights;
-    }
-    
-    try {
-        const jsonString = JSON.stringify(highlights);
-        const compressed = LZString.compressToUTF16(jsonString);
-        
-        // Only use compression if it actually saves space
-        if (compressed.length < jsonString.length) {
-            return { _compressed: true, data: compressed };
-        }
-    } catch (error) {
-        console.error('Compression error:', error);
-    }
-    
     return highlights;
 }
 
 // Clear all highlights for current page
 async function clearAllHighlights() {
     try {
+        // Get all highlights from storage
+        const result = await chrome.storage.local.get(['highlights']);
+        const allHighlights = result.highlights || [];
+        
+        // Filter out highlights for current page
+        const updatedHighlights = allHighlights.filter(h => h.url !== currentTab.url);
+        
+        // Save back to storage
+        await chrome.storage.local.set({ highlights: updatedHighlights });
+        
         // Clear local array
         highlights = [];
-        
-        // Update storage
-        const result = await chrome.storage.local.get(['highlights']);
-        const compressedData = result.highlights || {};
-        const allHighlights = await decompressHighlights(compressedData);
-        const url = normalizeUrl(currentTab.url);
-        delete allHighlights[url];
-        
-        // Compress before saving
-        const compressed = await compressHighlights(allHighlights);
-        await chrome.storage.local.set({ highlights: compressed });
         
         // Update UI
         updateHighlightsList();

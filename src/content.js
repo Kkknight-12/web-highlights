@@ -2,34 +2,36 @@
 (function() {
     'use strict';
     
+    // Early exit if no chrome runtime
+    if (typeof chrome === 'undefined' || !chrome.runtime) {
+        console.log('Chrome Web Highlighter: Chrome runtime not available');
+        return;
+    }
+    
     // Check if extension context is valid
     let isOrphaned = false;
     
     function isExtensionContextValid() {
         try {
-            return !!(chrome.runtime?.id);
+            // Check multiple conditions to ensure validity
+            return !!(chrome && chrome.runtime && chrome.runtime.id);
         } catch (e) {
             return false;
         }
     }
     
     // Execute function only if context is valid
-    function executeIfContextValid(callback) {
-        if (isOrphaned || !isExtensionContextValid()) {
-            if (!isOrphaned) {
-                isOrphaned = true;
-                cleanup();
-            }
-            return;
-        }
-        
+    async function executeIfContextValid(callback) {
+        // Still try to execute even if orphaned - let individual operations handle errors
         try {
-            callback();
+            await callback();
         } catch (error) {
             if (error.message?.includes('Extension context invalidated')) {
                 isOrphaned = true;
-                cleanup();
-            } else {
+                // Don't cleanup - keep UI functional
+                // Silently fail - no logging
+            } else if (!error.message?.includes('Cannot access a chrome')) {
+                // Only log errors that aren't related to Chrome API access
                 console.error('Error in content script:', error);
             }
         }
@@ -58,6 +60,9 @@
             clearInterval(contextCheckInterval);
         }
         
+        // Reset state
+        highlightsLoaded = false;
+        
         console.log('Chrome Web Highlighter: Cleanup completed');
     }
     
@@ -66,7 +71,8 @@
         if (!isExtensionContextValid()) {
             isOrphaned = true;
             clearInterval(contextCheckInterval);
-            cleanup();
+            // Don't cleanup - keep UI functional
+            console.log('Chrome Web Highlighter: Context check failed but keeping UI');
         }
     }, 5000);
     
@@ -97,17 +103,40 @@
     
     // Initialize the extension
     function initialize() {
-        executeIfContextValid(() => {
-            if (!document.body) return;
+        console.log('Chrome Web Highlighter: Initializing...');
+        
+        // Don't check context validity for UI creation
+        if (!document.body) {
+            console.warn('Chrome Web Highlighter: No document.body, waiting...');
+            return;
+        }
+        
+        // Always create UI and setup listeners
+        createUI();
+        setupEventListeners();
+        
+        // Only check context for Chrome API operations
+        if (isExtensionContextValid()) {
+            // Delay highlight loading to ensure DOM is fully ready
+            setTimeout(() => {
+                loadHighlights();
+            }, 100);
             
-            createUI();
-            setupEventListeners();
-            loadHighlights();
-        });
+            // Set up observer for dynamic content
+            observeDOMChanges();
+        } else {
+            console.log('Chrome Web Highlighter: Context invalid, but UI is ready');
+        }
     }
     
     // Create UI elements
     function createUI() {
+        // Don't create UI if already exists
+        if (highlightButtonContainer) {
+            console.log('Chrome Web Highlighter: UI already created');
+            return;
+        }
+        
         // Create highlight button container
         highlightButtonContainer = document.createElement('div');
         highlightButtonContainer.id = 'web-highlighter-button-container';
@@ -197,6 +226,8 @@
         highlightButtonContainer.appendChild(colorPicker);
         document.body.appendChild(highlightButtonContainer);
         
+        console.log('Chrome Web Highlighter: Button container created and added to DOM');
+        
         // Create mini toolbar
         createMiniToolbar();
         
@@ -278,24 +309,33 @@
         
         // Store mousedown handler for cleanup
         mousedownHandler = function(e) {
+            if (!e.target) return;
+            
             // Don't interfere with input fields
             const target = e.target;
             const element = target.nodeType === Node.ELEMENT_NODE ? target : target.parentElement;
             
-            if (element && (
-                element.tagName === 'INPUT' || 
-                element.tagName === 'TEXTAREA' ||
-                element.contentEditable === 'true' ||
-                (typeof element.closest === 'function' && element.closest('input, textarea, [contenteditable="true"]')))) {
-                hideHighlightButton();
-                hideMiniToolbar();
-                return;
-            }
-            
-            if (!element || (
-                (typeof element.closest === 'function' && 
-                 !element.closest('#web-highlighter-button-container') && 
-                 !element.closest('#web-highlighter-toolbar')))) {
+            // Ensure element exists and is an Element node
+            if (element && element.nodeType === Node.ELEMENT_NODE) {
+                if (element.tagName === 'INPUT' || 
+                    element.tagName === 'TEXTAREA' ||
+                    element.contentEditable === 'true' ||
+                    (typeof element.closest === 'function' && 
+                     element.closest('input, textarea, [contenteditable="true"]'))) {
+                    hideHighlightButton();
+                    hideMiniToolbar();
+                    return;
+                }
+                
+                // Check if click is outside our UI elements
+                if (typeof element.closest === 'function' && 
+                    !element.closest('#web-highlighter-button-container') && 
+                    !element.closest('#web-highlighter-toolbar')) {
+                    hideHighlightButton();
+                    hideMiniToolbar();
+                }
+            } else {
+                // No valid element, hide UI
                 hideHighlightButton();
                 hideMiniToolbar();
             }
@@ -336,34 +376,70 @@
         
         // Listen for messages from popup
         if (chrome.runtime && chrome.runtime.onMessage) {
-            chrome.runtime.onMessage.addListener(function(message) {
-                try {
-                    if (message.action === 'removeHighlight') {
-                        removeHighlight(message.highlightId);
-                    } else if (message.action === 'removeAllHighlights') {
-                        removeAllHighlights();
+            try {
+                chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+                    // Check if context is still valid
+                    if (!isExtensionContextValid()) {
+                        return;
                     }
-                } catch (error) {
-                    console.error('Error handling message:', error);
-                }
-            });
+                    try {
+                        if (message.action === 'removeHighlight') {
+                            removeHighlight(message.highlightId);
+                        } else if (message.action === 'removeAllHighlights') {
+                            removeAllHighlights();
+                        } else if (message.action === 'reloadHighlights') {
+                            // Force reload highlights (useful after storage changes)
+                            highlightsLoaded = false;
+                            loadHighlights();
+                        } else if (message.action === 'highlightFromContextMenu') {
+                            // Handle context menu highlight request
+                            try {
+                                const selection = window.getSelection();
+                                if (selection && selection.toString().trim()) {
+                                    selectedText = selection.toString();
+                                    selectedRange = selection.getRangeAt(0).cloneRange();
+                                    createHighlight();
+                                }
+                            } catch (err) {
+                                console.warn('Error handling context menu highlight:', err);
+                            }
+                        }
+                        // Send response to avoid errors
+                        if (sendResponse) {
+                            sendResponse({success: true});
+                        }
+                    } catch (error) {
+                        if (!error.message?.includes('Extension context invalidated') && 
+                            !error.message?.includes('Cannot access a chrome')) {
+                            console.error('Error handling message:', error);
+                        }
+                    }
+                });
+            } catch (error) {
+                // Silently fail if we can't add message listener
+            }
         }
     }
     
     // Handle text selection
     function handleTextSelection(e) {
+        console.log('Chrome Web Highlighter: Text selection event triggered');
+        
         // Skip if the event originated from an input, textarea, or contenteditable
         if (e && e.target) {
             const target = e.target;
             // Ensure target is an Element node before using closest
             const element = target.nodeType === Node.ELEMENT_NODE ? target : target.parentElement;
             
-            if (element && (
-                element.tagName === 'INPUT' || 
-                element.tagName === 'TEXTAREA' ||
-                element.contentEditable === 'true' ||
-                (typeof element.closest === 'function' && element.closest('input, textarea, [contenteditable="true"]')))) {
-                return;
+            // Check element exists and is an Element node
+            if (element && element.nodeType === Node.ELEMENT_NODE) {
+                if (element.tagName === 'INPUT' || 
+                    element.tagName === 'TEXTAREA' ||
+                    element.contentEditable === 'true' ||
+                    (typeof element.closest === 'function' && 
+                     element.closest('input, textarea, [contenteditable="true"]'))) {
+                    return;
+                }
             }
         }
         
@@ -373,17 +449,19 @@
         if (text.length > 0 && selection.rangeCount > 0) {
             // Double-check: Don't show button if selecting in input fields
             const anchorNode = selection.anchorNode;
-            const parentElement = anchorNode.nodeType === Node.TEXT_NODE ? 
+            const parentElement = anchorNode?.nodeType === Node.TEXT_NODE ? 
                 anchorNode.parentElement : anchorNode;
             
-            if (parentElement && (
-                parentElement.tagName === 'INPUT' || 
-                parentElement.tagName === 'TEXTAREA' ||
-                parentElement.contentEditable === 'true' ||
-                (typeof parentElement.closest === 'function' && 
-                 parentElement.closest('input, textarea, [contenteditable="true"]')))) {
-                hideHighlightButton();
-                return;
+            // Make sure parentElement exists and is an Element
+            if (parentElement && parentElement.nodeType === Node.ELEMENT_NODE) {
+                if (parentElement.tagName === 'INPUT' || 
+                    parentElement.tagName === 'TEXTAREA' ||
+                    parentElement.contentEditable === 'true' ||
+                    (typeof parentElement.closest === 'function' && 
+                     parentElement.closest('input, textarea, [contenteditable="true"]'))) {
+                    hideHighlightButton();
+                    return;
+                }
             }
             
             selectedText = text;
@@ -391,7 +469,13 @@
             
             const rect = selectedRange.getBoundingClientRect();
             if (rect.width > 0 && rect.height > 0) {
+                if (!highlightButtonContainer) {
+                    console.warn('Chrome Web Highlighter: Button container not initialized');
+                    return;
+                }
                 showHighlightButton(rect);
+            } else {
+                console.warn('Chrome Web Highlighter: Selection rect has no size');
             }
         } else {
             hideHighlightButton();
@@ -402,30 +486,57 @@
     function showHighlightButton(rect) {
         if (!highlightButtonContainer) return;
         
-        const left = rect.left + window.scrollX;
-        const top = rect.bottom + window.scrollY + 5;
-        
-        highlightButtonContainer.style.left = left + 'px';
-        highlightButtonContainer.style.top = top + 'px';
-        highlightButtonContainer.style.display = 'flex';
+        try {
+            const left = rect.left + window.scrollX;
+            const top = rect.bottom + window.scrollY + 5;
+            
+            highlightButtonContainer.style.left = left + 'px';
+            highlightButtonContainer.style.top = top + 'px';
+            highlightButtonContainer.style.display = 'flex';
+        } catch (error) {
+            // Silently fail if context is invalid
+            if (!error.message?.includes('Extension context invalidated') && 
+                !error.message?.includes('Cannot access a chrome')) {
+                console.error('Error showing highlight button:', error);
+            }
+        }
     }
     
     // Hide highlight button
     function hideHighlightButton() {
-        if (highlightButtonContainer) {
-            highlightButtonContainer.style.display = 'none';
-            colorPicker.style.display = 'none';
+        try {
+            if (highlightButtonContainer) {
+                highlightButtonContainer.style.display = 'none';
+            }
+            if (colorPicker) {
+                colorPicker.style.display = 'none';
+            }
+            
+            // Clear selection only if not in an input field
+            const activeElement = document.activeElement;
+            if (activeElement && (
+                activeElement.tagName === 'INPUT' || 
+                activeElement.tagName === 'TEXTAREA' ||
+                activeElement.contentEditable === 'true')) {
+                // Don't clear selection in input fields
+                return;
+            }
+            
+            try {
+                const selection = window.getSelection();
+                if (selection) {
+                    selection.removeAllRanges();
+                }
+            } catch (e) {
+                // Ignore selection clearing errors
+            }
+        } catch (error) {
+            // Silently fail if context is invalid
+            if (!error.message?.includes('Extension context invalidated') && 
+                !error.message?.includes('Cannot access a chrome')) {
+                console.error('Error hiding highlight button:', error);
+            }
         }
-        // Clear selection only if not in an input field
-        const activeElement = document.activeElement;
-        if (activeElement && (
-            activeElement.tagName === 'INPUT' || 
-            activeElement.tagName === 'TEXTAREA' ||
-            activeElement.contentEditable === 'true')) {
-            // Don't clear selection in input fields
-            return;
-        }
-        window.getSelection().removeAllRanges();
     }
     
     // Update button color indicator
@@ -444,10 +555,12 @@
         
         executeIfContextValid(async () => {
             const highlightId = generateId();
+            // Use default color if selectedColor is undefined
+            const color = selectedColor || DEFAULT_COLOR;
             const highlight = {
                 id: highlightId,
                 text: selectedText,
-                color: selectedColor,
+                color: color,
                 url: window.location.href,
                 timestamp: Date.now(),
                 path: getXPath(selectedRange.startContainer),
@@ -456,7 +569,7 @@
             };
             
             // Apply highlight to page
-            applyHighlight(selectedRange, highlightId, selectedColor);
+            applyHighlight(selectedRange, highlightId, color);
             
             // Save to storage
             await saveHighlight(highlight);
@@ -509,11 +622,19 @@
                 
                 // Add hover effect
                 span.addEventListener('mouseenter', function() {
-                    this.style.filter = 'brightness(0.9)';
+                    try {
+                        this.style.filter = 'brightness(0.9)';
+                    } catch (e) {
+                        // Ignore errors
+                    }
                 });
                 
                 span.addEventListener('mouseleave', function() {
-                    this.style.filter = 'brightness(1)';
+                    try {
+                        this.style.filter = 'brightness(1)';
+                    } catch (e) {
+                        // Ignore errors
+                    }
                 });
                 
                 // Add click handler
@@ -580,20 +701,36 @@
     function showMiniToolbar(rect) {
         if (!miniToolbar) return;
         
-        const left = rect.left + window.scrollX;
-        const top = rect.bottom + window.scrollY + 5;
-        
-        miniToolbar.style.left = left + 'px';
-        miniToolbar.style.top = top + 'px';
-        miniToolbar.style.display = 'flex';
+        try {
+            const left = rect.left + window.scrollX;
+            const top = rect.bottom + window.scrollY + 5;
+            
+            miniToolbar.style.left = left + 'px';
+            miniToolbar.style.top = top + 'px';
+            miniToolbar.style.display = 'flex';
+        } catch (error) {
+            // Silently fail if context is invalid
+            if (!error.message?.includes('Extension context invalidated') && 
+                !error.message?.includes('Cannot access a chrome')) {
+                console.error('Error showing mini toolbar:', error);
+            }
+        }
     }
     
     // Hide mini toolbar
     function hideMiniToolbar() {
-        if (miniToolbar) {
-            miniToolbar.style.display = 'none';
+        try {
+            if (miniToolbar) {
+                miniToolbar.style.display = 'none';
+            }
+            currentHighlightId = null;
+        } catch (error) {
+            // Silently fail if context is invalid
+            if (!error.message?.includes('Extension context invalidated') && 
+                !error.message?.includes('Cannot access a chrome')) {
+                console.error('Error hiding mini toolbar:', error);
+            }
         }
-        currentHighlightId = null;
     }
     
     // Handle toolbar actions
@@ -630,7 +767,7 @@
             
             // Check if extension context is valid before storage operations
             if (!chrome.runtime || !chrome.runtime.id) {
-                console.warn('Extension context invalidated');
+                // Silently fail - don't log context errors
                 return;
             }
             
@@ -639,7 +776,11 @@
             const filtered = highlights.filter(h => h.id !== highlightId);
             await chrome.storage.local.set({ [STORAGE_KEY]: filtered });
         } catch (error) {
-            console.error('Error removing highlight:', error);
+            // Only log non-context errors
+            if (!error.message?.includes('Extension context invalidated') && 
+                !error.message?.includes('Cannot access a chrome')) {
+                console.error('Error removing highlight:', error);
+            }
         }
     }
     
@@ -658,7 +799,7 @@
             
             // Check if extension context is valid before storage operations
             if (!chrome.runtime || !chrome.runtime.id) {
-                console.warn('Extension context invalidated');
+                // Silently fail - don't log context errors
                 return;
             }
             
@@ -667,7 +808,11 @@
             const filtered = highlights.filter(h => h.url !== window.location.href);
             await chrome.storage.local.set({ [STORAGE_KEY]: filtered });
         } catch (error) {
-            console.error('Error removing all highlights:', error);
+            // Only log non-context errors
+            if (!error.message?.includes('Extension context invalidated') && 
+                !error.message?.includes('Cannot access a chrome')) {
+                console.error('Error removing all highlights:', error);
+            }
         }
     }
     
@@ -676,14 +821,18 @@
         try {
             // Check if extension context is valid
             if (!chrome.runtime || !chrome.runtime.id) {
-                console.warn('Extension context invalidated');
+                // Silently fail - don't log context errors
                 return;
             }
             const highlights = await getHighlights();
             highlights.push(highlight);
             await chrome.storage.local.set({ [STORAGE_KEY]: highlights });
         } catch (error) {
-            console.error('Error saving highlight:', error);
+            // Only log non-context errors
+            if (!error.message?.includes('Extension context invalidated') && 
+                !error.message?.includes('Cannot access a chrome')) {
+                console.error('Error saving highlight:', error);
+            }
         }
     }
     
@@ -694,49 +843,124 @@
         }
         
         try {
+            // Double-check before accessing chrome API
+            if (!chrome.runtime?.id) {
+                isOrphaned = true;
+                return [];
+            }
             const result = await chrome.storage.local.get(STORAGE_KEY);
             return result[STORAGE_KEY] || [];
         } catch (error) {
-            if (error.message?.includes('Extension context invalidated')) {
+            // Silently handle context invalidation
+            if (error.message?.includes('Extension context invalidated') ||
+                error.message?.includes('Cannot access a chrome')) {
                 isOrphaned = true;
-                cleanup();
+                // Don't cleanup - just mark as orphaned
             }
             return [];
         }
     }
     
+    // Track if highlights have been loaded to prevent duplicates
+    let highlightsLoaded = false;
+    
     // Load highlights for current page
     async function loadHighlights() {
-        if (isOrphaned || !isExtensionContextValid()) {
+        if (isOrphaned || !isExtensionContextValid() || highlightsLoaded) {
             return;
         }
         
         try {
-            
             const highlights = await getHighlights();
             const pageHighlights = highlights.filter(h => h.url === window.location.href);
             
+            // Mark as loaded before processing to prevent race conditions
+            if (pageHighlights.length > 0) {
+                highlightsLoaded = true;
+            }
+            
             pageHighlights.forEach(highlight => {
                 try {
-                    const element = getElementByXPath(highlight.path);
-                    if (element && element.textContent.includes(highlight.text)) {
-                        // Find the text and highlight it
-                        const textNode = findTextNode(element, highlight.text);
-                        if (textNode) {
-                            const range = document.createRange();
-                            const startOffset = textNode.textContent.indexOf(highlight.text);
-                            range.setStart(textNode, startOffset);
-                            range.setEnd(textNode, startOffset + highlight.text.length);
-                            applyHighlight(range, highlight.id, highlight.color);
-                        }
+                    // Check if highlight already exists to prevent duplicates
+                    if (document.querySelector(`[data-highlight-id="${highlight.id}"]`)) {
+                        return;
+                    }
+                    
+                    // Try multiple methods to find and highlight text
+                    if (!restoreHighlightByXPath(highlight)) {
+                        // Fallback to text search if XPath fails
+                        restoreHighlightByTextSearch(highlight);
                     }
                 } catch (e) {
-                    console.error('Error restoring highlight:', e);
+                    // Only log non-context errors
+                    if (!e.message?.includes('Extension context invalidated') && 
+                        !e.message?.includes('Cannot access a chrome')) {
+                        console.warn('Error restoring highlight:', e);
+                    }
                 }
             });
         } catch (error) {
-            console.error('Error loading highlights:', error);
+            // Silently fail on context invalidation errors
+            if (!error.message?.includes('Extension context invalidated') && 
+                !error.message?.includes('Cannot access a chrome')) {
+                console.error('Error loading highlights:', error);
+            } else {
+                // Context invalidated - mark as orphaned but don't cleanup
+                // This allows UI to continue functioning
+                isOrphaned = true;
+                console.log('Chrome Web Highlighter: Context invalidated but keeping UI functional');
+            }
         }
+    }
+    
+    // Restore highlight using XPath
+    function restoreHighlightByXPath(highlight) {
+        const element = getElementByXPath(highlight.path);
+        if (element && element.textContent.includes(highlight.text)) {
+            const textNode = findTextNode(element, highlight.text);
+            if (textNode) {
+                const range = document.createRange();
+                const startOffset = textNode.textContent.indexOf(highlight.text);
+                if (startOffset !== -1) {
+                    range.setStart(textNode, startOffset);
+                    range.setEnd(textNode, startOffset + highlight.text.length);
+                    applyHighlight(range, highlight.id, highlight.color || 'yellow');
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    // Fallback: Restore highlight by searching for text
+    function restoreHighlightByTextSearch(highlight) {
+        const walker = document.createTreeWalker(
+            document.body,
+            NodeFilter.SHOW_TEXT,
+            {
+                acceptNode: function(node) {
+                    // Skip already highlighted text
+                    if (node.parentElement?.classList?.contains('web-highlighter-highlight')) {
+                        return NodeFilter.FILTER_REJECT;
+                    }
+                    return node.textContent.includes(highlight.text) ? 
+                        NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+                }
+            }
+        );
+        
+        let node;
+        while (node = walker.nextNode()) {
+            const startOffset = node.textContent.indexOf(highlight.text);
+            if (startOffset !== -1) {
+                const range = document.createRange();
+                range.setStart(node, startOffset);
+                range.setEnd(node, startOffset + highlight.text.length);
+                applyHighlight(range, highlight.id, highlight.color || 'yellow');
+                return true;
+            }
+        }
+        return false;
     }
     
     // Utility functions
@@ -800,14 +1024,66 @@
         return walker.nextNode();
     }
     
-    // Initialize when DOM is ready - but only if context is valid
-    if (isExtensionContextValid()) {
+    // Set up DOM observer for dynamic content
+    function observeDOMChanges() {
+        let debounceTimer;
+        const observer = new MutationObserver((mutations) => {
+            // Debounce to avoid excessive reloading
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                // Only reload if significant content changes
+                const hasSignificantChanges = mutations.some(mutation => {
+                    return mutation.type === 'childList' && 
+                           mutation.addedNodes.length > 0 &&
+                           Array.from(mutation.addedNodes).some(node => 
+                               node.nodeType === Node.ELEMENT_NODE ||
+                               (node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0)
+                           );
+                });
+                
+                if (hasSignificantChanges && !highlightsLoaded) {
+                    loadHighlights();
+                }
+            }, 500);
+        });
+        
+        // Start observing with a slight delay to avoid initial page load mutations
+        setTimeout(() => {
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        }, 1000);
+    }
+    
+    // Initialize when DOM is ready - skip chrome:// pages only
+    if (!window.location.href.startsWith('chrome://')) {
+        console.log('Chrome Web Highlighter: Setting up initialization');
+        
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initialize);
+        } else if (document.readyState === 'interactive') {
+            // DOM is parsed but resources still loading
+            document.addEventListener('DOMContentLoaded', initialize);
         } else {
+            // Document is complete
             initialize();
         }
+        
+        // Also listen for load event as a fallback
+        window.addEventListener('load', () => {
+            // Try to initialize if not done yet
+            if (!highlightButtonContainer) {
+                console.log('Chrome Web Highlighter: Fallback initialization on window load');
+                initialize();
+            }
+            
+            // Load highlights if context is valid
+            if (!highlightsLoaded && isExtensionContextValid()) {
+                setTimeout(loadHighlights, 500);
+            }
+        });
     } else {
-        console.log('Chrome Web Highlighter: Extension context invalid at load time, not initializing');
+        console.log('Chrome Web Highlighter: Not initializing (chrome:// page)');
     }
 })();

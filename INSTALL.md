@@ -108,6 +108,11 @@
 - Try on a different website
 - Check if site blocks content scripts
 
+### More Help
+For detailed troubleshooting information, see:
+- **TROUBLESHOOTING_LOG.md** - Complete list of known issues and solutions
+- **README.md** - Troubleshooting section with links to specific fixes
+
 ## 📦 Next Steps
 
 1. **Add Icons**
