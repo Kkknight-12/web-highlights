@@ -404,7 +404,7 @@
                 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                     // Check if context is still valid
                     if (!isExtensionContextValid()) {
-                        return;
+                        return false;
                     }
                     try {
                         if (message.action === 'removeHighlight') {
@@ -438,6 +438,8 @@
                             console.error('Error handling message:', error);
                         }
                     }
+                    // Return true to indicate we'll send a response asynchronously
+                    return true;
                 });
             } catch (error) {
                 // Silently fail if we can't add message listener
@@ -835,12 +837,12 @@
         if (!miniToolbar) return;
         
         try {
-            // Get the background color near the highlighted text (using the rect)
-            // Check at the middle of the highlight to get accurate background
-            const element = document.elementFromPoint(
-                rect ? rect.left + rect.width / 2 : parseFloat(miniToolbar.style.left), 
-                rect ? rect.top + rect.height / 2 : parseFloat(miniToolbar.style.top) - 10
-            );
+            // Get the background color outside the highlighted text to avoid checking the highlight's own background
+            // Check to the left of the highlight to avoid the highlight's background color
+            const checkX = rect ? Math.max(0, rect.left - 10) : parseFloat(miniToolbar.style.left);
+            const checkY = rect ? rect.top + rect.height / 2 : parseFloat(miniToolbar.style.top) - 10;
+            
+            const element = document.elementFromPoint(checkX, checkY);
             
             if (!element) return;
             
