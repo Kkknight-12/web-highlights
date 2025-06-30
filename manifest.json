@@ -22,7 +22,7 @@
     {
       "matches": ["http://*/*", "https://*/*", "file://*/*"],
       "exclude_matches": ["*://chrome.google.com/extensions/*"],
-      "js": ["src/content.js"],
+      "js": ["src/error-handler.js", "src/content.js"],
       "run_at": "document_idle"
     }
   ],
