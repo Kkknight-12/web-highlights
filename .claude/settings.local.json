@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:web-highlights.com)",
+      "Bash(grep:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(chmod:*)",
+      "Bash(./migrate-to-optimized.sh:*)",
+      "Bash(rg:*)",
+      "Bash(npm install)",
+      "Bash(npm run build:*)",
+      "Bash(cp:*)",
+      "Bash(rm:*)",
+      "Bash(cat:*)"
+    ],
+    "deny": []
+  }
+}

@@ -1,114 +1,138 @@
-# Chrome Web Highlighter
+# Web Highlighter - Chrome Extension
 
-A simple, free Chrome extension that lets users highlight text on any webpage.
+A simple, fast Chrome extension for highlighting and saving important text on any webpage.
 
-## Project Status
+![Web Highlighter Demo](assets/demo.gif)
 
-**Goal**: Build audience for future premium products
-**Timeline**: 2 days to MVP
-**Type**: Free with Pro upgrade ($9)
+## ✨ Features
 
-## Quick Start
+- 🎨 **Multiple Colors** - Choose from 4 highlight colors to organize your content
+- 💾 **Auto-Save** - All highlights are automatically saved locally
+- 🔍 **Smart Search** - Quickly find any highlight
+- 📤 **Export Options** - Export as Markdown, JSON, or plain text
+- 🏷️ **Tags & Notes** - Add context to your highlights
+- ⚡ **Fast & Lightweight** - No signup required, works offline
 
-```bash
-# No build needed - vanilla JS
-# Load unpacked extension in Chrome
-chrome://extensions > Developer mode > Load unpacked
-```
+## 🚀 Installation
 
-## Project Structure
+### From Chrome Web Store
+[Coming soon! Add to Chrome →](#)
 
+### For Development
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/Kkknight-12/chrome-web-highlighter.git
+   cd chrome-web-highlighter
+   ```
+
+2. Open Chrome and navigate to `chrome://extensions/`
+
+3. Enable **Developer mode** (toggle in top right)
+
+4. Click **Load unpacked** and select the project folder
+
+5. The extension is now installed! Look for the highlighter icon in your toolbar.
+
+## 📖 How to Use
+
+1. **Highlight Text**: Select any text on a webpage and click the highlight button that appears
+2. **Choose Color**: Pick from 4 different colors to categorize your highlights
+3. **Add Notes**: Optionally add notes or tags to your highlights
+4. **View All**: Click the extension icon to see all your saved highlights
+5. **Search**: Use the search bar to find specific highlights
+6. **Export**: Export your highlights in various formats
+
+## 🛠️ Development
+
+### Project Structure
 ```
 chrome-web-highlighter/
-├── manifest.json        # Chrome extension config
 ├── src/
-│   ├── popup.html      # Extension popup UI
-│   ├── popup.js        # Popup logic
-│   ├── content.js      # Page highlighting logic
-│   ├── background.js   # Service worker
-│   └── styles.css      # Highlight styles
-├── assets/
-│   └── icons/          # Extension icons
-└── docs/
-    └── store-listing.md # Chrome Web Store assets
+│   ├── content.js       # Main content script
+│   ├── popup.js         # Popup functionality
+│   ├── popup.html       # Popup UI
+│   ├── background.js    # Service worker
+│   ├── styles.css       # Extension styles
+│   └── error-handler.js # Error handling
+├── assets/              # Icons and images
+└── manifest.json        # Extension manifest
 ```
 
-## Features
+### Key Technologies
+- Vanilla JavaScript (ES6+)
+- Chrome Extension Manifest V3
+- Chrome Storage API
+- Chrome Context Menus API
 
-### Free Version
-- Highlight text in yellow
-- Saves automatically
-- Syncs across devices
-- Works on all sites
+### Testing Locally
+1. Make your changes
+2. Go to `chrome://extensions/`
+3. Click the refresh icon on the extension card
+4. Test your changes on any webpage
 
-### Pro Version ($9)
-- Multiple colors
-- Add notes
-- Export highlights
-- Categories/tags
+## 🐛 Known Issues
 
-## Development
+- Highlights may not work on some dynamic websites that heavily modify the DOM
+- Cannot highlight text in PDFs or Chrome system pages
+- Text selection across complex HTML structures may be limited
 
-Day 1: Core highlighting functionality
-Day 2: Polish and submit to store
-Day 3: Start marketing
+## 🤝 Contributing
 
-## Revenue Model
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-Primary: Build email list (500+ subscribers)
-Secondary: Pro upgrades ($9 one-time)
-Future: Upsell to React Text Annotator ($79)
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Troubleshooting
+## 📝 Privacy
 
-If you encounter issues with the extension, please refer to:
-- **[TROUBLESHOOTING_LOG.md](TROUBLESHOOTING_LOG.md)** - Comprehensive log of all issues and solutions
-- **[EXTENSION_CONTEXT_FIX.md](EXTENSION_CONTEXT_FIX.md)** - Fixing "Extension context invalidated" errors
-- **[RELOAD_FIX.md](RELOAD_FIX.md)** - Fixing highlights disappearing on page reload
-- **[FIXES_APPLIED.md](FIXES_APPLIED.md)** - Summary of all fixes applied to the extension
+Web Highlighter respects your privacy:
+- All data is stored locally on your device
+- No external servers or tracking
+- No account required
+- You own your data
 
-Common issues covered:
-- Extension context invalidation
-- Highlights not persisting across reloads
-- DOM manipulation errors
-- Storage synchronization problems
-- Highlight button not appearing
+[Read full privacy policy](https://Kkknight-12.github.io/chrome-web-highlighter/privacy-policy)
 
-## 🧪 Local Testing & Debugging
+## 📄 License
 
-### Quick Start Testing
-1. Open `chrome://extensions/`
-2. Enable "Developer mode"
-3. Click "Load unpacked" and select this folder
-4. Open `test/test.html` in Chrome
-5. Check console for debug information
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### Advanced Debugging
-See [LOCAL_TESTING_GUIDE.md](LOCAL_TESTING_GUIDE.md) for:
-- Setting up debug environment
-- Using debug console commands
-- Testing error scenarios
-- Performance monitoring
+## 🙏 Acknowledgments
 
-### Debug Mode
-The extension includes a debug version with enhanced logging:
-```bash
-# Use debug version (Node.js required)
-node test-runner.js
+- Icons from [Icons8](https://icons8.com)
+- Inspired by the need for better web annotation tools
 
-# Restore original version
-node test-runner.js --restore
-```
+## 💬 Support
 
-### Console Commands
-When using debug version:
-```javascript
-// Get extension state
-__chromeHighlighterDebug.stats()
+- **Issues**: [GitHub Issues](https://github.com/Kkknight-12/chrome-web-highlighter/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Kkknight-12/chrome-web-highlighter/discussions)
 
-// Test error handling
-__chromeHighlighterDebug.testError()
+## 🚀 Roadmap
+claude
+### Version 1.0 (Current)
+- ✅ Basic highlighting functionality
+- ✅ Multiple colors
+- ✅ Local storage
+- ✅ Export features
 
-// Force orphan state
-__chromeHighlighterDebug.forceOrphan()
-```
+### Version 1.1 (Planned)
+- [ ] Keyboard shortcuts
+- [ ] Highlight statistics
+- [ ] Bulk operations
+- [ ] Improved search with filters
+
+### Version 2.0 (Pro Version)
+- [ ] Cloud sync across devices
+- [ ] Team collaboration
+- [ ] AI-powered summaries
+- [ ] Advanced export templates
+
+---
+
+Made with ❤️ for better web reading
+
+**Note**: Remember to star ⭐ this repo if you find it useful!

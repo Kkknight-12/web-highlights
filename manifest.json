@@ -7,7 +7,9 @@
   "permissions": [
     "storage",
     "activeTab",
-    "contextMenus"
+    "contextMenus",
+    "scripting",
+    "webNavigation"
   ],
   
   "host_permissions": [
@@ -15,24 +17,23 @@
   ],
   
   "background": {
-    "service_worker": "src/background.js"
+    "service_worker": "src/background/index.js",
+    "type": "module"
   },
   
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*", "file://*/*"],
-      "exclude_matches": ["*://chrome.google.com/extensions/*"],
-      "js": ["src/error-handler.js", "src/content.js"],
+      "js": ["src/content/index.js"],
       "run_at": "document_idle"
     }
   ],
   
   "action": {
-    "default_popup": "src/popup.html",
+    "default_popup": "src/popup/index.html",
     "default_icon": {
       "16": "assets/icons8-highlighter-16.png",
       "48": "assets/icons8-highlighter-48.png",
-      "64": "assets/icons8-highlighter-64.png",
       "128": "assets/icons8-highlighter-100.png"
     }
   },
@@ -40,7 +41,6 @@
   "icons": {
     "16": "assets/icons8-highlighter-16.png",
     "48": "assets/icons8-highlighter-48.png",
-    "64": "assets/icons8-highlighter-64.png",
     "128": "assets/icons8-highlighter-100.png"
   }
 }

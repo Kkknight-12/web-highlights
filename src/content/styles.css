@@ -1,0 +1,236 @@
+/* Base styles for all UI components */
+.highlighter-ui-component {
+  position: absolute !important;
+  z-index: 2147483647 !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  color: #1f2937 !important;
+  box-sizing: border-box !important;
+}
+
+/* Highlight styles */
+.web-highlighter-highlight {
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+}
+
+.web-highlighter-highlight:hover {
+  filter: brightness(0.9);
+}
+
+/* Color classes */
+.highlight-yellow {
+  background-color: rgba(255, 224, 102, 0.4) !important;
+  border-bottom: 2px solid rgba(255, 224, 102, 0.8) !important;
+}
+
+.highlight-green {
+  background-color: rgba(110, 231, 183, 0.4) !important;
+  border-bottom: 2px solid rgba(110, 231, 183, 0.8) !important;
+}
+
+.highlight-blue {
+  background-color: rgba(147, 197, 253, 0.4) !important;
+  border-bottom: 2px solid rgba(147, 197, 253, 0.8) !important;
+}
+
+.highlight-pink {
+  background-color: rgba(252, 165, 165, 0.4) !important;
+  border-bottom: 2px solid rgba(252, 165, 165, 0.8) !important;
+}
+
+/* Highlight button container */
+.highlight-button-container {
+  display: none;
+  flex-direction: row !important;
+  align-items: center !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 28px !important;
+  padding: 6px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  backdrop-filter: blur(20px) !important;
+  animation: slideIn 0.2s ease-out !important;
+  gap: 8px !important;
+}
+
+.highlight-button-container.visible {
+  display: flex !important;
+}
+
+/* Color options */
+.color-options {
+  display: flex !important;
+  gap: 6px !important;
+  padding: 0 6px !important;
+  border-left: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.color-option {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  border: 2px solid transparent !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  padding: 0 !important;
+  position: relative !important;
+}
+
+.color-option:hover {
+  transform: scale(1.15) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.color-option.selected {
+  border-color: #4b5563 !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8) !important;
+}
+
+.color-option.selected::after {
+  content: '✓' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  color: white !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Main highlight button */
+.highlight-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px 10px !important;
+  background: transparent !important;
+  color: #1f2937 !important;
+  border: none !important;
+  border-radius: 22px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.highlight-btn:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
+.highlight-btn:active {
+  background: rgba(0, 0, 0, 0.1) !important;
+}
+
+.highlight-btn svg {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Mini toolbar */
+.mini-toolbar {
+  display: none;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 12px !important;
+  padding: 6px !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+  gap: 2px !important;
+  backdrop-filter: blur(20px) !important;
+  animation: slideIn 0.2s ease-out !important;
+}
+
+.mini-toolbar.visible {
+  display: flex !important;
+}
+
+.toolbar-btn {
+  background: transparent !important;
+  border: none !important;
+  padding: 10px !important;
+  cursor: pointer !important;
+  border-radius: 8px !important;
+  color: #4b5563 !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.toolbar-btn:hover {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+  color: #1f2937 !important;
+  transform: scale(1.1) !important;
+}
+
+.toolbar-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* Color picker */
+.color-picker {
+  display: none;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 24px !important;
+  padding: 10px !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+  gap: 10px !important;
+  backdrop-filter: blur(20px) !important;
+  animation: slideIn 0.2s ease-out !important;
+}
+
+.color-picker.visible {
+  display: flex !important;
+}
+
+.color-btn {
+  width: 36px !important;
+  height: 36px !important;
+  border: 3px solid rgba(255, 255, 255, 0.9) !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  padding: 0 !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.color-btn::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-radius: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  transition: width 0.3s, height 0.3s !important;
+}
+
+.color-btn:hover {
+  transform: scale(1.2) translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+}
+
+.color-btn:hover::before {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
