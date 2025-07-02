@@ -1,7 +1,8 @@
 // Highlight button UI component with color options
 import { store } from '../../store/store'
 import { showHighlightButton, hideHighlightButton, setSelectedColor } from '../../store/uiSlice'
-import { createHighlight, HIGHLIGHT_COLORS } from './highlighter'
+// Using robust highlighter that handles lists properly
+import { createHighlight, HIGHLIGHT_COLORS } from './highlighter-robust'
 
 let buttonContainer = null
 let selectedColor = 'yellow' // Default color

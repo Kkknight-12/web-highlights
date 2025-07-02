@@ -1,7 +1,8 @@
 // Mini toolbar component
 import { store } from '../../store/store'
 import { showMiniToolbar, hideMiniToolbar, showColorPicker } from '../../store/uiSlice'
-import { deleteHighlight } from './highlighter'
+// Using robust highlighter that handles lists properly
+import { deleteHighlight } from './highlighter-robust'
 
 let toolbar = null
 

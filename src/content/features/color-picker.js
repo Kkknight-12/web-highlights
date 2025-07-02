@@ -1,7 +1,8 @@
 // Color picker component
 import { store } from '../../store/store'
 import { hideColorPicker, setSelectedColor } from '../../store/uiSlice'
-import { changeHighlightColor, HIGHLIGHT_COLORS } from './highlighter'
+// Using robust highlighter that handles lists properly
+import { changeHighlightColor, HIGHLIGHT_COLORS } from './highlighter-robust'
 
 let picker = null
 

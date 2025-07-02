@@ -1,7 +1,8 @@
 // Main content script entry point
 import { store } from '../store/store'
 import { loadHighlights, setCurrentUrl } from '../store/highlightsSlice'
-import { initializeHighlighter } from './features/highlighter'
+// Using robust highlighter that handles lists properly
+import { initializeHighlighter } from './features/highlighter-robust'
 import { initializeHighlightButton } from './features/highlight-button'
 import { initializeMiniToolbar } from './features/mini-toolbar'
 import { initializeColorPicker } from './features/color-picker'
@@ -46,9 +47,10 @@ async function initialize() {
   
   // Restore highlights after store is loaded
   setTimeout(() => {
-    if (window.__highlighter && window.__highlighter.restoreHighlights) {
+    // Using robust highlighter
+    if (window.__robustHighlighter && window.__robustHighlighter.restoreHighlights) {
       console.log('[Web Highlighter] Restoring highlights after store load')
-      window.__highlighter.restoreHighlights()
+      window.__robustHighlighter.restoreHighlights()
     }
   }, 300)
   

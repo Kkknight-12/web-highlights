@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 2 Test - Context Capture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .console-output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .info { color: #0066cc; }
+        .context { color: #28a745; }
+        .parent { color: #dc3545; }
+        .list { color: #6f42c1; }
+    </style>
+</head>
+<body>
+    <h1>Phase 2 Test - Context Capture</h1>
+    
+    <p>Open the browser console (F12) to see the captured context data when you create highlights.</p>
+
+    <div class="test-section">
+        <h2>Test 1: Simple Context</h2>
+        <p>
+            This is a simple paragraph. Select the word "simple" and highlight it. 
+            The console should show the before and after context (up to 50 characters).
+        </p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: List Context (Critical Test)</h2>
+        <ul>
+            <li>First item with the word Chrome</li>
+            <li>Second item also has Chrome in it</li>
+            <li>Third item mentions Chrome Storage API</li>
+            <li>Fourth item about Chrome Extension development</li>
+        </ul>
+        <p>
+            Select "Chrome" in different items. The console should show:
+            - List context (item index, prev/next items)
+            - Which occurrence of "Chrome" within the parent
+            - Parent selector
+        </p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Duplicate Text</h2>
+        <p>
+            The word test appears multiple times in this paragraph. 
+            This test is to test if we can identify which test you selected.
+            Select different occurrences of "test" and check the occurrence tracking.
+        </p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Block Boundaries</h2>
+        <p>End of this paragraph...</p>
+        <p>Start of next paragraph. Select text across these two paragraphs.</p>
+        <p>The context should respect block boundaries.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 5: Nested Lists</h2>
+        <ul>
+            <li>Parent item 1
+                <ul>
+                    <li>Nested item 1.1</li>
+                    <li>Nested item 1.2</li>
+                </ul>
+            </li>
+            <li>Parent item 2</li>
+        </ul>
+        <p>Select text in nested items to test list context capture.</p>
+    </div>
+
+    <div id="console-output" class="console-output">
+        <div class="info">Console output will appear here...</div>
+    </div>
+
+    <script>
+        // Capture console logs and display them
+        const output = document.getElementById('console-output');
+        const originalLog = console.log;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            
+            // Parse and format the logs
+            const message = args.join(' ');
+            if (message.includes('[Custom Highlighter]')) {
+                const div = document.createElement('div');
+                
+                if (message.includes('Context:')) {
+                    div.className = 'context';
+                } else if (message.includes('Parent:')) {
+                    div.className = 'parent';
+                } else if (message.includes('listContext')) {
+                    div.className = 'list';
+                }
+                
+                // Pretty print objects
+                let formatted = message;
+                args.forEach(arg => {
+                    if (typeof arg === 'object' && arg !== null) {
+                        formatted = JSON.stringify(arg, null, 2);
+                    }
+                });
+                
+                div.textContent = new Date().toLocaleTimeString() + ' - ' + formatted;
+                output.appendChild(div);
+                output.scrollTop = output.scrollHeight;
+            }
+        };
+    </script>
+</body>
+</html>

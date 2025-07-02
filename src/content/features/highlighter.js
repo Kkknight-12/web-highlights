@@ -83,6 +83,9 @@ export function createHighlight(color = 'yellow') {
     // Serialize the highlight
     const serialized = highlighter.serialize()
     
+    console.log('[Highlighter] Serialized data:', serialized)
+    console.log('[Highlighter] Selected text:', text)
+    
     // Create highlight object
     const highlight = {
       id,
@@ -201,6 +204,8 @@ export function restoreHighlights() {
       try {
         if (highlight.serialized) {
           console.log('[Highlighter] Deserializing:', highlight.id)
+          console.log('[Highlighter] Original text:', highlight.text)
+          console.log('[Highlighter] Serialized data:', highlight.serialized)
           
           // Deserialize and apply the highlight
           highlighter.deserialize(highlight.serialized)
@@ -209,10 +214,17 @@ export function restoreHighlights() {
           const colorConfig = HIGHLIGHT_COLORS[highlight.color]
           const elements = document.querySelectorAll(`.${colorConfig.className}:not([data-highlight-id])`)
           
+          let restoredText = ''
           elements.forEach(element => {
             element.setAttribute('data-highlight-id', highlight.id)
             element.setAttribute('data-color', highlight.color)
+            restoredText += element.textContent
           })
+          
+          console.log('[Highlighter] Restored text:', restoredText)
+          if (restoredText !== highlight.text) {
+            console.warn('[Highlighter] Text mismatch! Original:', highlight.text, 'Restored:', restoredText)
+          }
           
           console.log('[Highlighter] Successfully restored:', highlight.id)
         }

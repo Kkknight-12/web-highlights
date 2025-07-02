@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Specific Issues</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .issue {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Specific Issues</h1>
+
+    <div class="test-section">
+        <h2>Issue 1: Multi-List Item Selection</h2>
+        <div class="issue">
+            Try selecting text that spans across multiple list items (e.g., from "saved" to "tracking")
+        </div>
+        <ul>
+            <li>💾 Auto-Save - All highlights are automatically saved locally on your device</li>
+            <li>🔒 Privacy First - No external servers or tracking</li>
+            <li>🎨 Multiple Colors - Choose from yellow, green, blue, or pink</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Issue 2: Text with Colons</h2>
+        <div class="issue">
+            Try highlighting text that contains colons
+        </div>
+        <p>Important: This is a test paragraph.</p>
+        <ul>
+            <li>Feature: Auto-save functionality</li>
+            <li>Status: Active and working</li>
+            <li>Time: 10:30 AM</li>
+        </ul>
+        <p>Note: Colons should work fine in highlights.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Combined Test</h2>
+        <div class="issue">
+            Multi-item selection with colons
+        </div>
+        <ul>
+            <li>Step 1: Initialize the extension</li>
+            <li>Step 2: Configure the settings</li>
+            <li>Step 3: Start highlighting</li>
+        </ul>
+    </div>
+
+    <script>
+        console.log('Test page loaded - check console for highlight debug info');
+    </script>
+</body>
+</html>
