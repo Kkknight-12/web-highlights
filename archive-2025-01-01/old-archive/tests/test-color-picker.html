@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ColorPicker Component Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 40px;
+      background: #f3f4f6;
+    }
+    
+    .test-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      color: #1f2937;
+      margin-bottom: 30px;
+    }
+    
+    .test-section {
+      margin-bottom: 40px;
+      padding: 20px;
+      background: #f9fafb;
+      border-radius: 6px;
+    }
+    
+    .test-section h2 {
+      color: #374151;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    
+    .test-button {
+      padding: 10px 20px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+      font-size: 14px;
+    }
+    
+    .test-button:hover {
+      background: #2563eb;
+    }
+    
+    .anchor-element {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #f3f4f6;
+      border: 2px solid #d1d5db;
+      border-radius: 6px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    
+    .anchor-element:hover {
+      background: #e5e7eb;
+    }
+    
+    .output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #1f2937;
+      color: #10b981;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .dark-section {
+      background: #1f2937;
+      color: #f3f4f6;
+      padding: 20px;
+      border-radius: 6px;
+    }
+    
+    #selected-color-display {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid #d1d5db;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>ColorPicker Component Test</h1>
+    
+    <!-- Basic Test -->
+    <div class="test-section">
+      <h2>1. Basic Color Picker</h2>
+      <button class="test-button" onclick="showBasicPicker()">Show Color Picker</button>
+      <button class="test-button" onclick="hidePicker()">Hide Color Picker</button>
+      <span>Selected: <span id="selected-color">yellow</span></span>
+      <span id="selected-color-display" style="background: rgba(255, 224, 102, 0.4);"></span>
+    </div>
+    
+    <!-- Anchored Position Test -->
+    <div class="test-section">
+      <h2>2. Anchored Positions</h2>
+      <div style="margin: 40px 0;">
+        <span class="anchor-element" onclick="showAnchored(this, 'top')">Show Top</span>
+        <span class="anchor-element" onclick="showAnchored(this, 'bottom')">Show Bottom</span>
+        <span class="anchor-element" onclick="showAnchored(this, 'left')">Show Left</span>
+        <span class="anchor-element" onclick="showAnchored(this, 'right')">Show Right</span>
+      </div>
+    </div>
+    
+    <!-- Dark Mode Test -->
+    <div class="test-section dark-section">
+      <h2>3. Dark Mode</h2>
+      <button class="test-button" onclick="showDarkModePicker()">Show Dark Mode Picker</button>
+    </div>
+    
+    <!-- Event Test -->
+    <div class="test-section">
+      <h2>4. Event Handling</h2>
+      <button class="test-button" onclick="testEvents()">Test Events</button>
+      <button class="test-button" onclick="clearOutput()">Clear Output</button>
+      <div class="output" id="event-output">Event output will appear here...</div>
+    </div>
+    
+    <!-- API Test -->
+    <div class="test-section">
+      <h2>5. Component API</h2>
+      <button class="test-button" onclick="testAPI()">Test API Methods</button>
+      <button class="test-button" onclick="setColorProgrammatically()">Set Color (Blue)</button>
+      <button class="test-button" onclick="getColorInfo()">Get Color Info</button>
+    </div>
+  </div>
+
+  <!-- Load dependencies -->
+  <script>
+    // Mock EventBus
+    window.EventBus = {
+      emit: function(event, data) {
+        logEvent(`EventBus: ${event}`, data);
+      },
+      on: function() {}
+    };
+    
+    // Mock StateManager
+    window.StateManager = {
+      set: function(module, state) {
+        logEvent(`StateManager: ${module}`, state);
+      },
+      subscribe: function() {},
+      register: function() {}
+    };
+    
+    // Mock Constants
+    window.Constants = {
+      COLORS: {
+        HIGHLIGHT_COLORS: {
+          yellow: { bg: 'rgba(255, 224, 102, 0.4)', border: 'rgba(255, 224, 102, 0.6)', name: 'Yellow' },
+          green: { bg: 'rgba(110, 231, 183, 0.4)', border: 'rgba(110, 231, 183, 0.6)', name: 'Green' },
+          blue: { bg: 'rgba(147, 197, 253, 0.4)', border: 'rgba(147, 197, 253, 0.6)', name: 'Blue' },
+          pink: { bg: 'rgba(252, 165, 165, 0.4)', border: 'rgba(252, 165, 165, 0.6)', name: 'Pink' }
+        },
+        DEFAULT_COLOR: 'yellow'
+      }
+    };
+  </script>
+  
+  <!-- Load ColorPicker component -->
+  <script src="src/ui/ColorPicker.js"></script>
+  
+  <script>
+    let colorPicker = null;
+    
+    // Initialize color picker
+    function initColorPicker() {
+      if (!colorPicker) {
+        colorPicker = document.createElement('color-picker');
+        document.body.appendChild(colorPicker);
+        
+        // Listen for color selection
+        colorPicker.addEventListener('color-selected', (event) => {
+          const color = event.detail.color;
+          document.getElementById('selected-color').textContent = color;
+          
+          const colorInfo = colorPicker.getColorInfo(color);
+          if (colorInfo) {
+            document.getElementById('selected-color-display').style.background = colorInfo.bg;
+          }
+          
+          logEvent('Color Selected', { color });
+        });
+      }
+      return colorPicker;
+    }
+    
+    // Test functions
+    function showBasicPicker() {
+      initColorPicker();
+      colorPicker.show({ x: 300, y: 200 });
+    }
+    
+    function showAnchored(anchor, position) {
+      initColorPicker();
+      colorPicker.show({ anchor, position });
+    }
+    
+    function showDarkModePicker() {
+      initColorPicker();
+      colorPicker.show({ x: 300, y: 400, darkMode: true });
+    }
+    
+    function hidePicker() {
+      if (colorPicker) {
+        colorPicker.hide();
+      }
+    }
+    
+    function testEvents() {
+      initColorPicker();
+      logEvent('Testing Events', 'Click on colors to see events');
+      colorPicker.show({ x: 300, y: 500 });
+    }
+    
+    function testAPI() {
+      initColorPicker();
+      
+      logEvent('API Test', {
+        selectedColor: colorPicker.getSelectedColor(),
+        isOpen: colorPicker.isOpen(),
+        yellowInfo: colorPicker.getColorInfo('yellow')
+      });
+    }
+    
+    function setColorProgrammatically() {
+      initColorPicker();
+      colorPicker.setSelectedColor('blue');
+      logEvent('Set Color', { color: 'blue' });
+      
+      // Update display
+      document.getElementById('selected-color').textContent = 'blue';
+      const colorInfo = colorPicker.getColorInfo('blue');
+      if (colorInfo) {
+        document.getElementById('selected-color-display').style.background = colorInfo.bg;
+      }
+    }
+    
+    function getColorInfo() {
+      initColorPicker();
+      const colors = ['yellow', 'green', 'blue', 'pink'];
+      const info = {};
+      
+      colors.forEach(color => {
+        info[color] = colorPicker.getColorInfo(color);
+      });
+      
+      logEvent('Color Info', info);
+    }
+    
+    // Utility functions
+    function logEvent(label, data) {
+      const output = document.getElementById('event-output');
+      const timestamp = new Date().toLocaleTimeString();
+      const entry = `[${timestamp}] ${label}: ${JSON.stringify(data, null, 2)}\n`;
+      output.textContent += entry;
+      output.scrollTop = output.scrollHeight;
+    }
+    
+    function clearOutput() {
+      document.getElementById('event-output').textContent = 'Event output cleared.\n';
+    }
+  </script>
+</body>
+</html>

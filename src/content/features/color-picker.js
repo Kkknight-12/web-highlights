@@ -1,72 +1,99 @@
-// Color picker component
+/**
+ * Color Picker Component
+ * Redux-based UI component for color selection
+ */
 import { store } from '../../store/store'
 import { hideColorPicker, setSelectedColor } from '../../store/uiSlice'
-// Using robust highlighter that handles lists properly
-import { changeHighlightColor, HIGHLIGHT_COLORS } from './highlighter-robust'
+import { createColorPickerContainer } from '../ui/color-picker-template.js'
+import { showElement, hideElement } from '../ui/visibility-manager.js'
+import { highlightEngine } from '../highlighting/highlight-engine.js'
 
-let picker = null
-
-export function initializeColorPicker() {
-  // Create picker element
-  picker = document.createElement('div')
-  picker.className = 'highlighter-ui-component color-picker'
-  
-  // Create color buttons
-  const colorButtons = Object.entries(HIGHLIGHT_COLORS).map(([color, config]) => `
-    <button class="color-btn" data-color="${color}" 
-            style="background-color: ${config.hex}" 
-            title="${color}"></button>
-  `).join('')
-  
-  picker.innerHTML = colorButtons
-  
-  // Add to page
-  document.body.appendChild(picker)
-  
-  // Event handlers
-  picker.addEventListener('click', handleColorSelect)
-  document.addEventListener('mousedown', handleMouseDown)
-  
-  // Subscribe to store changes
-  store.subscribe(updatePickerVisibility)
-  
-  console.log('[Color Picker] Initialized')
-}
-
-function handleColorSelect(e) {
-  const button = e.target.closest('button')
-  if (!button) return
-  
-  const color = button.dataset.color
-  const state = store.getState()
-  const highlightId = state.ui.colorPicker.highlightId
-  
-  if (highlightId) {
-    // Change existing highlight color
-    changeHighlightColor(highlightId, color)
-  } else {
-    // Set default color for new highlights
-    store.dispatch(setSelectedColor(color))
+class ColorPicker {
+  constructor() {
+    this.picker = null
+    this.currentHighlightId = null
+    this.unsubscribe = null
   }
-  
-  store.dispatch(hideColorPicker())
-}
 
-function handleMouseDown(e) {
-  if (picker && !picker.contains(e.target)) {
+  init() {
+    console.log('[ColorPicker] Initializing')
+    
+    // Create UI
+    this.createPickerUI()
+    
+    // Attach event listeners
+    this.attachEventListeners()
+    
+    // Subscribe to store changes
+    this.unsubscribe = store.subscribe(this.updatePickerVisibility.bind(this))
+  }
+
+  createPickerUI() {
+    this.picker = createColorPickerContainer()
+    document.body.appendChild(this.picker)
+  }
+
+  attachEventListeners() {
+    // Color selection
+    this.picker.addEventListener('click', this.handleColorSelect.bind(this))
+    
+    // Document clicks for hiding
+    document.addEventListener('mousedown', this.handleMouseDown.bind(this))
+  }
+
+  handleColorSelect(e) {
+    const button = e.target.closest('button')
+    if (!button) return
+    
+    const color = button.dataset.color
+    const state = store.getState()
+    const highlightId = state.ui.colorPicker.highlightId || this.currentHighlightId
+    
+    if (highlightId) {
+      // Change existing highlight color
+      highlightEngine.changeHighlightColor(highlightId, color)
+    } else {
+      // Set default color for new highlights
+      store.dispatch(setSelectedColor(color))
+    }
+    
+    // Hide picker
     store.dispatch(hideColorPicker())
   }
-}
 
-function updatePickerVisibility() {
-  const state = store.getState()
-  const { visible, position } = state.ui.colorPicker
-  
-  if (visible) {
-    picker.classList.add('visible')
-    picker.style.left = `${position.x}px`
-    picker.style.top = `${position.y}px`
-  } else {
-    picker.classList.remove('visible')
+
+  handleMouseDown(e) {
+    // Don't hide if clicking on picker
+    if (this.picker && !this.picker.contains(e.target)) {
+      store.dispatch(hideColorPicker())
+    }
+  }
+
+  updatePickerVisibility() {
+    const state = store.getState()
+    const { visible, position } = state.ui.colorPicker
+    
+    if (visible) {
+      showElement(this.picker, position)
+    } else {
+      hideElement(this.picker)
+    }
+  }
+
+  destroy() {
+    // Clean up DOM
+    if (this.picker) {
+      this.picker.remove()
+    }
+    
+    // Unsubscribe from store
+    if (this.unsubscribe) {
+      this.unsubscribe()
+    }
+    
+    // Remove document listeners
+    document.removeEventListener('mousedown', this.handleMouseDown)
   }
 }
+
+export { ColorPicker }

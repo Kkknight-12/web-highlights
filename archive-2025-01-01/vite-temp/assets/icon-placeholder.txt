@@ -1,0 +1,12 @@
+Icon placeholders needed:
+- icon-16.png (16x16)
+- icon-32.png (32x32)  
+- icon-48.png (48x48)
+- icon-128.png (128x128)
+
+To create icons:
+1. Open generate-icons.html in Chrome
+2. Right-click each canvas and "Save image as..."
+3. Save with the correct filename in this assets folder
+
+Or use any image editor to create yellow squares with a marker icon.

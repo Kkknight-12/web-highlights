@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Navigation Test - Chrome Web Highlighter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .page {
+            display: none;
+            min-height: 500px;
+        }
+        .page.active {
+            display: block;
+        }
+        nav {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        nav button {
+            margin-right: 10px;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        nav button:hover {
+            background: #45a049;
+        }
+        .test-text {
+            line-height: 1.8;
+            margin: 20px 0;
+        }
+        .instructions {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chrome Web Highlighter - Navigation Test</h1>
+    
+    <nav>
+        <button onclick="showPage('page1')">Page 1</button>
+        <button onclick="showPage('page2')">Page 2</button>
+        <button onclick="showPage('page3')">Page 3</button>
+    </nav>
+
+    <div id="page1" class="page active">
+        <h2>Page 1</h2>
+        <div class="instructions">
+            <strong>Test Instructions:</strong>
+            <ol>
+                <li>Highlight some text on this page</li>
+                <li>Click on the highlight to show mini toolbar</li>
+                <li>Navigate to Page 2 using the button above</li>
+                <li>Click outside on the page - the toolbar should close</li>
+                <li>Try highlighting text on Page 2 - button should appear</li>
+            </ol>
+        </div>
+        <div class="test-text">
+            <p>This is Page 1. Select this text to test the highlight button functionality. 
+            The highlighter should work properly on this page.</p>
+            
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod 
+            tempor incididunt ut labore et dolore magna aliqua. This is another paragraph 
+            you can highlight to test the extension.</p>
+            
+            <p>When you navigate to another page, any open toolbars should properly close 
+            when you click outside of them. This tests the state management across 
+            navigation events.</p>
+        </div>
+    </div>
+
+    <div id="page2" class="page">
+        <h2>Page 2</h2>
+        <div class="instructions">
+            <strong>On this page:</strong>
+            <ul>
+                <li>The highlight button should appear when you select text</li>
+                <li>Any toolbar from Page 1 should close when clicking outside</li>
+                <li>Creating new highlights should work normally</li>
+            </ul>
+        </div>
+        <div class="test-text">
+            <p>Welcome to Page 2! This simulates a single-page application navigation. 
+            Select this text to verify the highlight button appears correctly.</p>
+            
+            <p>The extension should handle the DOM changes gracefully. All functionality 
+            should work as expected even after navigation. Try highlighting multiple 
+            sections of text.</p>
+            
+            <p>Click on any highlight to show the mini toolbar. Then click elsewhere 
+            on the page to verify it closes properly. This tests the click handling 
+            after navigation.</p>
+        </div>
+    </div>
+
+    <div id="page3" class="page">
+        <h2>Page 3</h2>
+        <div class="instructions">
+            <strong>Final test:</strong>
+            <p>Navigate rapidly between pages and test that the extension remains stable.</p>
+        </div>
+        <div class="test-text">
+            <p>This is the third page for testing rapid navigation. The extension should 
+            handle multiple quick page changes without breaking.</p>
+            
+            <p>Try this sequence: Highlight text → Show toolbar → Navigate → Click outside. 
+            The toolbar should always close properly regardless of which page you're on.</p>
+            
+            <p>The state management should reset appropriately with each navigation, 
+            ensuring a consistent user experience across all pages.</p>
+        </div>
+    </div>
+
+    <script>
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Dispatch a custom event to simulate SPA navigation
+            window.dispatchEvent(new Event('popstate'));
+            
+            // Also trigger a mutation event
+            document.body.appendChild(document.createComment('navigation'));
+        }
+        
+        // Log navigation events for debugging
+        window.addEventListener('popstate', () => {
+            console.log('Navigation event triggered');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Highlighter Module Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        h2 { margin-top: 0; }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        #test-content {
+            padding: 20px;
+            border: 2px solid #ccc;
+            margin: 20px 0;
+            background: white;
+        }
+        .web-highlighter-highlight {
+            /* These styles will be overridden by the module */
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chrome Web Highlighter - Highlighter Module Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Content Area</h2>
+        <div id="test-content">
+            <p>This is a test paragraph with some text that can be highlighted. Select any portion of this text and click the "Create Highlight" button to test the highlighting functionality.</p>
+            
+            <p>Here's another paragraph with different content. The highlighter should be able to handle multiple selections and restore them correctly after a page reload.</p>
+            
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Manual Test Controls</h2>
+        <button onclick="createHighlightFromSelection()">Create Highlight from Selection</button>
+        <button onclick="removeLastHighlight()">Remove Last Highlight</button>
+        <button onclick="removeAllHighlights()">Remove All Highlights</button>
+        <button onclick="reloadHighlights()">Reload Highlights</button>
+        <div id="manual-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Automated Tests</h2>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <div id="test-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Event Log</h2>
+        <button onclick="clearEventLog()">Clear Log</button>
+        <div id="event-log"></div>
+    </div>
+
+    <!-- Mock Chrome Storage API -->
+    <script>
+        // Simple mock storage for testing
+        const mockStorage = {
+            highlights: [],
+            
+            async getHighlightsByUrl(url) {
+                return this.highlights.filter(h => h.url === url);
+            },
+            
+            async saveHighlight(highlight) {
+                this.highlights.push(highlight);
+                return true;
+            },
+            
+            async removeHighlight(id) {
+                this.highlights = this.highlights.filter(h => h.id !== id);
+                return true;
+            }
+        };
+        
+        // Make StorageModule available globally
+        window.StorageModule = mockStorage;
+    </script>
+
+    <!-- Load the modules -->
+    <script src="src/core/EventBus.js"></script>
+    <script src="src/core/StateManager.js"></script>
+    <script src="src/core/Constants.js"></script>
+    <script src="src/modules/highlighter.js"></script>
+    
+    <script>
+        // Test utilities
+        let lastHighlightId = null;
+        
+        function log(message, isError = false, targetId = 'test-results') {
+            const element = document.getElementById(targetId);
+            const div = document.createElement('div');
+            div.className = isError ? 'error' : 'success';
+            div.textContent = message;
+            element.appendChild(div);
+        }
+        
+        function logEvent(event, data) {
+            const element = document.getElementById('event-log');
+            const div = document.createElement('div');
+            div.innerHTML = `<strong>${event}:</strong> ${JSON.stringify(data)}`;
+            element.appendChild(div);
+        }
+        
+        function clearEventLog() {
+            document.getElementById('event-log').innerHTML = '';
+        }
+        
+        // Setup event listeners
+        EventBus.on('highlighter:initialized', () => logEvent('highlighter:initialized', {}));
+        EventBus.on('highlighter:created', (data) => {
+            logEvent('highlighter:created', data);
+            lastHighlightId = data.id;
+        });
+        EventBus.on('highlighter:applied', (data) => logEvent('highlighter:applied', data));
+        EventBus.on('highlighter:removed', (data) => logEvent('highlighter:removed', data));
+        EventBus.on('highlighter:allRemoved', () => logEvent('highlighter:allRemoved', {}));
+        EventBus.on('highlighter:loaded', (data) => logEvent('highlighter:loaded', data));
+        EventBus.on('highlighter:error', (data) => logEvent('highlighter:error', data));
+        EventBus.on('highlight:clicked', (data) => {
+            logEvent('highlight:clicked', { id: data.id });
+            log(`Highlight ${data.id} clicked!`, false, 'manual-results');
+        });
+        
+        // Initialize StateManager
+        StateManager.register('highlighter', { isLoading: false, loadedCount: 0, activeHighlightId: null });
+        
+        // Manual test functions
+        function createHighlightFromSelection() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0 || selection.isCollapsed) {
+                log('No text selected!', true, 'manual-results');
+                return;
+            }
+            
+            const range = selection.getRangeAt(0);
+            const text = selection.toString();
+            const color = ['yellow', 'green', 'blue', 'pink'][Math.floor(Math.random() * 4)];
+            
+            const highlight = HighlighterModule.createHighlight(range, text, color);
+            if (highlight) {
+                log(`Created highlight: ${highlight.id} (${color})`, false, 'manual-results');
+                // Save to mock storage
+                mockStorage.saveHighlight(highlight);
+            } else {
+                log('Failed to create highlight', true, 'manual-results');
+            }
+            
+            selection.removeAllRanges();
+        }
+        
+        function removeLastHighlight() {
+            if (!lastHighlightId) {
+                log('No highlight to remove', true, 'manual-results');
+                return;
+            }
+            
+            HighlighterModule.removeHighlight(lastHighlightId);
+            mockStorage.removeHighlight(lastHighlightId);
+            log(`Removed highlight: ${lastHighlightId}`, false, 'manual-results');
+            lastHighlightId = null;
+        }
+        
+        function removeAllHighlights() {
+            HighlighterModule.removeAllHighlights();
+            mockStorage.highlights = [];
+            log('Removed all highlights', false, 'manual-results');
+        }
+        
+        async function reloadHighlights() {
+            await HighlighterModule.reloadHighlights();
+            log('Reloaded highlights', false, 'manual-results');
+        }
+        
+        // Automated test functions
+        async function testInit() {
+            try {
+                await HighlighterModule.init();
+                log('✓ Highlighter module initialized');
+            } catch (error) {
+                log(`✗ Init failed: ${error.message}`, true);
+            }
+        }
+        
+        async function testCreateHighlight() {
+            try {
+                // Create a range programmatically
+                const testParagraph = document.querySelector('#test-content p');
+                const textNode = testParagraph.firstChild;
+                const range = document.createRange();
+                range.setStart(textNode, 10);
+                range.setEnd(textNode, 30);
+                
+                const highlight = HighlighterModule.createHighlight(range, 'test paragraph with', 'yellow');
+                
+                if (highlight) {
+                    log('✓ Highlight created successfully');
+                    log(`  ID: ${highlight.id}`);
+                    log(`  Color: ${highlight.color}`);
+                    
+                    // Check if highlight span exists in DOM
+                    const span = document.querySelector(`[data-highlight-id="${highlight.id}"]`);
+                    if (span) {
+                        log('✓ Highlight span found in DOM');
+                    } else {
+                        log('✗ Highlight span not found in DOM', true);
+                    }
+                } else {
+                    log('✗ Failed to create highlight', true);
+                }
+            } catch (error) {
+                log(`✗ Create highlight failed: ${error.message}`, true);
+            }
+        }
+        
+        async function testRemoveHighlight() {
+            try {
+                // First create a highlight
+                const testParagraph = document.querySelectorAll('#test-content p')[1];
+                const textNode = testParagraph.firstChild;
+                const range = document.createRange();
+                range.setStart(textNode, 0);
+                range.setEnd(textNode, 20);
+                
+                const highlight = HighlighterModule.createHighlight(range, "Here's another parag", 'green');
+                const highlightId = highlight.id;
+                
+                // Now remove it
+                HighlighterModule.removeHighlight(highlightId);
+                
+                // Check if removed from DOM
+                const span = document.querySelector(`[data-highlight-id="${highlightId}"]`);
+                if (!span) {
+                    log('✓ Highlight removed successfully');
+                } else {
+                    log('✗ Highlight still exists in DOM', true);
+                }
+            } catch (error) {
+                log(`✗ Remove highlight failed: ${error.message}`, true);
+            }
+        }
+        
+        async function testLoadHighlights() {
+            try {
+                // Add some highlights to mock storage
+                const testHighlight = {
+                    id: 'test-load-1',
+                    text: 'Lorem ipsum',
+                    color: 'blue',
+                    url: window.location.href,
+                    timestamp: Date.now()
+                };
+                
+                mockStorage.highlights = [testHighlight];
+                
+                // Load highlights
+                await HighlighterModule.loadHighlights();
+                
+                // Check if highlight was applied
+                const span = document.querySelector(`[data-highlight-id="${testHighlight.id}"]`);
+                if (span) {
+                    log('✓ Highlights loaded and applied');
+                } else {
+                    log('✗ Highlight not found after loading', true);
+                }
+            } catch (error) {
+                log(`✗ Load highlights failed: ${error.message}`, true);
+            }
+        }
+        
+        async function testHighlightClick() {
+            try {
+                // Create a highlight
+                const testParagraph = document.querySelectorAll('#test-content p')[2];
+                const textNode = testParagraph.firstChild;
+                const range = document.createRange();
+                range.setStart(textNode, 0);
+                range.setEnd(textNode, 11);
+                
+                const highlight = HighlighterModule.createHighlight(range, 'Lorem ipsum', 'pink');
+                
+                // Simulate click
+                const span = document.querySelector(`[data-highlight-id="${highlight.id}"]`);
+                if (span) {
+                    span.click();
+                    log('✓ Highlight click event triggered');
+                } else {
+                    log('✗ Could not find highlight to click', true);
+                }
+            } catch (error) {
+                log(`✗ Highlight click test failed: ${error.message}`, true);
+            }
+        }
+        
+        async function testMultipleTextNodes() {
+            try {
+                // Create a range that spans multiple text nodes
+                const firstP = document.querySelector('#test-content p');
+                const secondP = document.querySelectorAll('#test-content p')[1];
+                
+                const range = document.createRange();
+                range.setStart(firstP.firstChild, firstP.firstChild.textContent.length - 10);
+                range.setEnd(secondP.firstChild, 10);
+                
+                const selectedText = range.toString();
+                const highlight = HighlighterModule.createHighlight(range, selectedText, 'green');
+                
+                if (highlight) {
+                    log('✓ Multi-node highlight created');
+                    
+                    // Count highlight spans
+                    const spans = document.querySelectorAll(`[data-highlight-id="${highlight.id}"]`);
+                    log(`  Created ${spans.length} highlight spans`);
+                } else {
+                    log('✗ Failed to create multi-node highlight', true);
+                }
+            } catch (error) {
+                log(`✗ Multi-node highlight test failed: ${error.message}`, true);
+            }
+        }
+        
+        async function runAllTests() {
+            document.getElementById('test-results').innerHTML = '';
+            
+            log('=== Running Highlighter Module Tests ===');
+            
+            // Clean up before tests
+            HighlighterModule.removeAllHighlights();
+            mockStorage.highlights = [];
+            
+            await testInit();
+            await testCreateHighlight();
+            await testRemoveHighlight();
+            await testLoadHighlights();
+            await testHighlightClick();
+            await testMultipleTextNodes();
+            
+            log('=== Tests Complete ===');
+            
+            // Check state
+            const state = StateManager.get('highlighter');
+            log(`Final state: ${JSON.stringify(state)}`);
+            
+            // Show loaded highlights
+            const loadedIds = HighlighterModule.getLoadedHighlightIds();
+            log(`Loaded highlights: ${loadedIds.length}`);
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', async () => {
+            await HighlighterModule.init();
+            log('Highlighter module initialized. Select text and use the buttons to test.', false, 'manual-results');
+        });
+    </script>
+</body>
+</html>

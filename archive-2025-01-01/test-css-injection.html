@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test CSS Injection - Chrome Web Highlighter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS Injection Test - Chrome Web Highlighter</h1>
+    
+    <div class="test-section">
+        <h2>Test Instructions</h2>
+        <ol>
+            <li>Load this page with the Chrome Web Highlighter extension installed</li>
+            <li>Select some text on this page</li>
+            <li>The highlight button should appear (using injected CSS)</li>
+            <li>Click on a highlight to see the mini toolbar (using injected CSS)</li>
+            <li>Click the color button to see the color picker (using injected CSS)</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h2>Sample Text for Testing</h2>
+        <p>
+            This is a sample paragraph for testing the Chrome Web Highlighter extension. 
+            Select any portion of this text to see the highlight button appear. The button 
+            should be styled using CSS injected via the background script, following 
+            uBlock Origin's pattern.
+        </p>
+        <p>
+            The extension uses unique attribute selectors like <code>[wh-hb-sessionId]</code> 
+            for the highlight button, <code>[wh-mt-sessionId]</code> for the mini toolbar, 
+            and <code>[wh-cp-sessionId]</code> for the color picker. This ensures that 
+            the extension's styles don't conflict with any website's existing CSS.
+        </p>
+    </div>
+    
+    <div class="test-section">
+        <h2>CSS Injection Features</h2>
+        <ul>
+            <li><strong>Attribute Selectors:</strong> Unique per session to avoid conflicts</li>
+            <li><strong>Background Script Injection:</strong> Uses chrome.scripting.insertCSS</li>
+            <li><strong>Maximum z-index:</strong> 2147483647 for proper layering</li>
+            <li><strong>Batched Operations:</strong> Multiple CSS operations are batched</li>
+            <li><strong>Frame-specific:</strong> CSS can be injected into specific frames</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>Expected Behavior</h2>
+        <div class="status info">
+            When you select text, you should see a styled highlight button appear above the selection.
+        </div>
+        <div class="status info">
+            When you click on a highlighted text, a mini toolbar should appear with copy, remove, note, and color options.
+        </div>
+        <div class="status info">
+            When you click the color button, a color picker should appear with 4 color options.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Debugging</h2>
+        <p>
+            Open the browser console (F12) to see any error messages. The extension logs 
+            CSS injection operations and any errors that occur.
+        </p>
+        <p>
+            Check the Elements panel to see the injected elements with their unique 
+            attribute selectors. The styles should be applied via <code>&lt;style&gt;</code> 
+            tags injected by the extension.
+        </p>
+    </div>
+    
+    <script>
+        // Log when the page loads
+        console.log('Test page loaded. Chrome Web Highlighter should inject CSS for UI components.');
+        
+        // Check for extension context
+        if (window.chrome && window.chrome.runtime && window.chrome.runtime.id) {
+            console.log('Chrome extension context detected.');
+        } else {
+            console.warn('Chrome extension context not detected. Make sure the extension is loaded.');
+        }
+    </script>
+</body>
+</html>

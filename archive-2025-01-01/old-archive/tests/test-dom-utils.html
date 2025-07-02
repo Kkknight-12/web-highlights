@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DOM Utilities Module Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        h2 { margin-top: 0; }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        
+        /* Test elements */
+        #test-container {
+            border: 2px dashed #999;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f9f9f9;
+        }
+        
+        .test-element {
+            background: #e0e0e0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .invisible {
+            visibility: hidden;
+        }
+        
+        .transparent {
+            opacity: 0;
+        }
+        
+        .offscreen {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        #unique-element {
+            background: #ffd700;
+            padding: 10px;
+            font-weight: bold;
+        }
+        
+        .highlight-test {
+            background-color: rgba(255, 224, 102, 0.4);
+            border-bottom: 2px solid rgba(255, 224, 102, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <h1>Chrome Web Highlighter - DOM Utilities Module Test</h1>
+    
+    <div class="test-section">
+        <h2>Module Status</h2>
+        <div id="module-status">Loading...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Elements Container</h2>
+        <div id="test-container">
+            <div id="unique-element">Element with ID</div>
+            <div class="test-element">
+                <span>Normal element</span>
+                <input type="text" placeholder="Input field">
+            </div>
+            <div class="test-element" contenteditable="true">ContentEditable element</div>
+            <div class="test-element hidden">Hidden element (display: none)</div>
+            <div class="test-element invisible">Invisible element (visibility: hidden)</div>
+            <div class="test-element transparent">Transparent element (opacity: 0)</div>
+            <div class="test-element offscreen">Offscreen element</div>
+            <div class="test-element">
+                Text with   multiple     spaces
+                and
+                line breaks
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Automated Tests</h2>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <div id="test-results"></div>
+    </div>
+
+    <!-- Load the module -->
+    <script src="src/utils/domUtils.js"></script>
+    
+    <script>
+        // Test utilities
+        function log(message, isError = false) {
+            const element = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.className = isError ? 'error' : 'success';
+            div.textContent = message;
+            element.appendChild(div);
+        }
+        
+        // Check module loaded
+        if (typeof DOMUtils !== 'undefined') {
+            document.getElementById('module-status').innerHTML = '<span class="success">✓ DOMUtils module loaded successfully</span>';
+        } else {
+            document.getElementById('module-status').innerHTML = '<span class="error">✗ DOMUtils module failed to load</span>';
+        }
+        
+        // Test functions
+        async function testIsValidElement() {
+            try {
+                const element = document.getElementById('unique-element');
+                const textNode = element.firstChild;
+                const nullValue = null;
+                
+                if (DOMUtils.isValidElement(element) === true &&
+                    DOMUtils.isValidElement(textNode) === false &&
+                    DOMUtils.isValidElement(nullValue) === false) {
+                    log('✓ isValidElement works correctly');
+                } else {
+                    log('✗ isValidElement failed', true);
+                }
+            } catch (error) {
+                log(`✗ isValidElement test error: ${error.message}`, true);
+            }
+        }
+        
+        async function testIsInputField() {
+            try {
+                const input = document.querySelector('input');
+                const div = document.querySelector('.test-element');
+                const contentEditable = document.querySelector('[contenteditable="true"]');
+                
+                if (DOMUtils.isInputField(input) === true &&
+                    DOMUtils.isInputField(div) === false &&
+                    DOMUtils.isInputField(contentEditable) === true) {
+                    log('✓ isInputField works correctly');
+                } else {
+                    log('✗ isInputField failed', true);
+                }
+            } catch (error) {
+                log(`✗ isInputField test error: ${error.message}`, true);
+            }
+        }
+        
+        async function testXPath() {
+            try {
+                const element = document.getElementById('unique-element');
+                const xpath = DOMUtils.getXPath(element);
+                
+                if (xpath && xpath.includes('unique-element')) {
+                    const foundElement = DOMUtils.getElementByXPath(xpath);
+                    if (foundElement === element) {
+                        log('✓ XPath generation and retrieval work');
+                    } else {
+                        log('✗ XPath retrieval failed', true);
+                    }
+                } else {
+                    log('✗ XPath generation failed', true);
+                }
+            } catch (error) {
+                log(`✗ XPath test error: ${error.message}`, true);
+            }
+        }
+        
+        async function testFindTextNode() {
+            try {
+                const container = document.getElementById('test-container');
+                const textNode = DOMUtils.findTextNode(container, 'Element with ID');
+                
+                if (textNode && textNode.nodeType === Node.TEXT_NODE &&
+                    textNode.textContent.includes('Element with ID')) {
+                    log('✓ findTextNode works correctly');
+                } else {
+                    log('✗ findTextNode failed', true);
+                }
+            } catch (error) {
+                log(`✗ findTextNode test error: ${error.message}`, true);
+            }
+        }
+        
+        async function testTextNodesInRange() {
+            try {
+                const element = document.getElementById('unique-element');
+                const range = document.createRange();
+                range.selectNodeContents(element);
+                
+                const textNodes = DOMUtils.getTextNodesInRange(range);
+                const text = DOMUtils.getTextFromRange(range);
+                
+                if (textNodes.length > 0 && text === 'Element with ID') {
+                    log('✓ Text node operations work correctly');
+                } else {
+                    log('✗ Text node operations failed', true);
+                }
+            } catch (error) {
+                log(`✗ Text node operations test error: ${error.message}`, true);
+            }
+        }
+        
+        async function testIsElementVisible() {
+            try {
+                const visible = document.getElementById('unique-element');
+                const hidden = document.querySelector('.hidden');
+                const invisible = document.querySelector('.invisible');
+                const transparent = document.querySelector('.transparent');
+                
+                if (DOMUtils.isElementVisible(visible) === true &&
+                    DOMUtils.isElementVisible(hidden) === false &&
+                    DOMUtils.isElementVisible(invisible) === false &&
+                    DOMUtils.isElementVisible(transparent) === false) {
+                    log('✓ isElementVisible works correctly');
+                } else {
+                    log('✗ isElementVisible failed', true);
+                }
+            } catch (error) {
+                log(`✗ isElementVisible test error: ${error.message}`, true);
+            }
+        }
+        
+        async function testGetElementPosition() {
+            try {
+                const element = document.getElementById('unique-element');
+                const position = DOMUtils.getElementPosition(element);
+                
+                if (position && position.top > 0 && position.left >= 0 &&
+                    position.width > 0 && position.height > 0) {
+                    log('✓ getElementPosition works correctly');
+                } else {
+                    log('✗ getElementPosition failed', true);
+                }
+            } catch (error) {
+                log(`✗ getElementPosition test error: ${error.message}`, true);
+            }
+        }
+        
+        async function testNormalizeWhitespace() {
+            try {
+                const text = '  Hello   world  \n\n  test  ';
+                const normalized = DOMUtils.normalizeWhitespace(text);
+                
+                if (normalized === 'Hello world\ntest') {
+                    log('✓ normalizeWhitespace works correctly');
+                } else {
+                    log('✗ normalizeWhitespace failed', true);
+                }
+            } catch (error) {
+                log(`✗ normalizeWhitespace test error: ${error.message}`, true);
+            }
+        }
+        
+        async function testGetClosest() {
+            try {
+                const span = document.querySelector('.test-element span');
+                const closest = DOMUtils.getClosest(span, '.test-element');
+                
+                if (closest && closest.classList.contains('test-element')) {
+                    log('✓ getClosest works correctly');
+                } else {
+                    log('✗ getClosest failed', true);
+                }
+            } catch (error) {
+                log(`✗ getClosest test error: ${error.message}`, true);
+            }
+        }
+        
+        async function testCreateElement() {
+            try {
+                const element = DOMUtils.createElement('div', {
+                    class: 'test-created',
+                    id: 'created-element',
+                    style: { backgroundColor: 'red', padding: '10px' },
+                    dataset: { testValue: 'hello' }
+                }, 'Created element content');
+                
+                if (element.tagName === 'DIV' &&
+                    element.className === 'test-created' &&
+                    element.id === 'created-element' &&
+                    element.style.backgroundColor === 'red' &&
+                    element.dataset.testValue === 'hello' &&
+                    element.textContent === 'Created element content') {
+                    log('✓ createElement works correctly');
+                } else {
+                    log('✗ createElement failed', true);
+                }
+            } catch (error) {
+                log(`✗ createElement test error: ${error.message}`, true);
+            }
+        }
+        
+        async function testWaitForElement() {
+            try {
+                // Create element after delay
+                setTimeout(() => {
+                    const div = document.createElement('div');
+                    div.id = 'delayed-element';
+                    document.body.appendChild(div);
+                }, 100);
+                
+                // Wait for it
+                const element = await DOMUtils.waitForElement('#delayed-element', 1000);
+                
+                if (element && element.id === 'delayed-element') {
+                    log('✓ waitForElement works correctly');
+                    element.remove();
+                } else {
+                    log('✗ waitForElement failed', true);
+                }
+            } catch (error) {
+                log(`✗ waitForElement test error: ${error.message}`, true);
+            }
+        }
+        
+        async function runAllTests() {
+            document.getElementById('test-results').innerHTML = '';
+            
+            log('=== Running DOM Utilities Tests ===');
+            
+            await testIsValidElement();
+            await testIsInputField();
+            await testXPath();
+            await testFindTextNode();
+            await testTextNodesInRange();
+            await testIsElementVisible();
+            await testGetElementPosition();
+            await testNormalizeWhitespace();
+            await testGetClosest();
+            await testCreateElement();
+            await testWaitForElement();
+            
+            log('=== Tests Complete ===');
+        }
+        
+        // Run tests on load
+        window.addEventListener('load', () => {
+            log('DOM Utilities test page ready. Click "Run All Tests" to begin.', false);
+        });
+    </script>
+</body>
+</html>

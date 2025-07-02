@@ -6,7 +6,7 @@
 1. **Migrated to Modern Stack**:
    - Vite + CRXJS for hot module replacement
    - Redux Toolkit for state management
-   - Rangy library for robust text highlighting
+   - Custom highlighting implementation (no external libraries)
    - Clean feature-based architecture
 
 2. **New Project Structure**:
@@ -59,7 +59,7 @@ chrome-web-highlighter/
 - **Vite**: Fast build tool with HMR
 - **CRXJS**: Chrome extension plugin for Vite
 - **Redux Toolkit**: Modern Redux with less boilerplate
-- **Rangy**: Robust text selection/highlighting library
+- **Custom Highlighting**: Built-in text selection/highlighting (no external dependencies)
 
 ### What's Working:
 - ✅ Text highlighting with persistence
