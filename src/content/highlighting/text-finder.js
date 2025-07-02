@@ -295,7 +295,13 @@ export function findTextInContainer(container, text, textIndex, occurrence = 0) 
         
         while (collectedLength < originalTextLength && (node = walker.nextNode())) {
           const nodeText = node.textContent
-          const takeLength = Math.min(remainingLength - collectedLength, nodeText.length)
+          // Fix: calculate how much we still need, not subtract collected from remaining
+          const stillNeeded = originalTextLength - collectedLength
+          const takeLength = Math.min(stillNeeded, nodeText.length)
+          
+          if (takeLength <= 0) {
+            break
+          }
           
           result.push({
             node,
