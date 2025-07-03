@@ -98,18 +98,37 @@ class HighlightEngine {
         throw new Error('No elements created')
       }
       
+      // Extract the actual highlighted text from the wrapped elements
+      // This ensures we save exactly what was highlighted, not what was selected
+      const actualHighlightedText = elements
+        .map(el => el.textContent)
+        .join('')
+      
+      // Log if there's a mismatch
+      if (actualHighlightedText !== text) {
+        console.warn('[HighlightEngine] Text mismatch detected:', {
+          selected: text,
+          highlighted: actualHighlightedText,
+          selectedLength: text.length,
+          highlightedLength: actualHighlightedText.length
+        })
+      }
+      
+      // Recalculate position with the actual highlighted text
+      const actualPosition = findTextPositionInCleanText(actualHighlightedText, containerInfo, range)
+      
       // Create highlight object
       const highlight = {
         id,
-        text,
+        text: actualHighlightedText, // Use actual highlighted text
         color,
         timestamp: Date.now(),
         url: window.location.href,
         elements: elements.length,
         location: {
           container: containerInfo,
-          textIndex: position.index,
-          occurrence: position.occurrence
+          textIndex: actualPosition.index, // Use recalculated position
+          occurrence: actualPosition.occurrence
         }
       }
       
@@ -177,17 +196,25 @@ class HighlightEngine {
       const elements = wrapTextNodes(blockRange, id, color)
       
       if (elements.length > 0) {
+        // Extract actual highlighted text from wrapped elements
+        const actualBlockText = elements
+          .map(el => el.textContent)
+          .join('')
+        
+        // Recalculate position with actual text
+        const actualPosition = findTextPositionInCleanText(actualBlockText, containerInfo, blockRange)
+        
         const highlight = {
           id,
-          text: blockText,
+          text: actualBlockText, // Use actual highlighted text
           color,
           timestamp: Date.now(),
           url,
           elements: elements.length,
           location: {
             container: containerInfo,
-            textIndex: position.index,
-            occurrence: position.occurrence
+            textIndex: actualPosition.index,
+            occurrence: actualPosition.occurrence
           }
         }
         
