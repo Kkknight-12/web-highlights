@@ -73,12 +73,29 @@ export function findTextPositionInCleanText(text, containerInfo, range) {
   const normalizedText = text.replace(/\s+/g, ' ').trim()
   const normalizedCleanText = cleanText.replace(/\s+/g, ' ')
   
+  /* OLD O(n²) IMPLEMENTATION - PRESERVED FOR REFERENCE
   const positions = []
   let index = normalizedCleanText.indexOf(normalizedText)
   
   while (index !== -1) {
-    // Map back to original position
+    // Map back to original position - THIS IS O(n) FOR EACH OCCURRENCE!
     const originalIndex = mapNormalizedToOriginal(cleanText, index)
+    positions.push(originalIndex)
+    index = normalizedCleanText.indexOf(normalizedText, index + 1)
+  }
+  */
+  
+  // NEW O(n) IMPLEMENTATION - BUILD POSITION MAPPING ONCE
+  // Create a mapping table between normalized and original positions
+  const positionMap = buildNormalizedPositionMap(cleanText)
+  
+  // Find all occurrences using the pre-built mapping
+  const positions = []
+  let index = normalizedCleanText.indexOf(normalizedText)
+  
+  while (index !== -1) {
+    // O(1) lookup instead of O(n) iteration
+    const originalIndex = positionMap.get(index) || index
     positions.push(originalIndex)
     index = normalizedCleanText.indexOf(normalizedText, index + 1)
   }
@@ -239,6 +256,7 @@ export function findTextInContainer(container, text, textIndex, occurrence = 0) 
   const normalizedSearchText = text.replace(/\s+/g, ' ').trim()
   const normalizedCleanText = cleanText.replace(/\s+/g, ' ')
   
+  /* OLD O(n²) IMPLEMENTATION - PRESERVED FOR REFERENCE
   // Find all occurrences of the text
   let index = normalizedCleanText.indexOf(normalizedSearchText)
   let occurrenceCount = 0
@@ -246,8 +264,27 @@ export function findTextInContainer(container, text, textIndex, occurrence = 0) 
   
   while (index !== -1) {
     if (occurrenceCount === occurrence) {
-      // Map back to original text position
+      // Map back to original text position - THIS WAS O(n)!
       targetIndex = mapNormalizedToOriginal(cleanText, index)
+      break
+    }
+    occurrenceCount++
+    index = normalizedCleanText.indexOf(normalizedSearchText, index + 1)
+  }
+  */
+  
+  // NEW O(n) IMPLEMENTATION - Build position map once
+  const positionMap = buildNormalizedPositionMap(cleanText)
+  
+  // Find specific occurrence
+  let index = normalizedCleanText.indexOf(normalizedSearchText)
+  let occurrenceCount = 0
+  let targetIndex = -1
+  
+  while (index !== -1) {
+    if (occurrenceCount === occurrence) {
+      // O(1) lookup instead of O(n) mapping
+      targetIndex = positionMap.get(index) || index
       break
     }
     occurrenceCount++
@@ -326,6 +363,8 @@ export function findTextInContainer(container, text, textIndex, occurrence = 0) 
  * Map normalized text position back to original text position
  * @private
  */
+/* OLD O(n) IMPLEMENTATION - PRESERVED FOR REFERENCE
+ * This function was called for EACH occurrence found, making the overall algorithm O(n²)
 function mapNormalizedToOriginal(originalText, normalizedIndex) {
   let originalIndex = 0
   let normalizedCount = 0
@@ -348,5 +387,36 @@ function mapNormalizedToOriginal(originalText, normalizedIndex) {
   }
   
   return originalIndex
+}
+*/
+
+// NEW O(n) IMPLEMENTATION - Build complete mapping in one pass
+/**
+ * Build a mapping table between normalized positions and original positions
+ * This is O(n) but only runs once, not for each occurrence
+ * @param {string} originalText - Original text with all whitespace
+ * @returns {Map} Map of normalized position -> original position
+ */
+function buildNormalizedPositionMap(originalText) {
+  const positionMap = new Map()
+  let normalizedPos = 0
+  
+  for (let i = 0; i < originalText.length; i++) {
+    // Map current normalized position to original position
+    positionMap.set(normalizedPos, i)
+    
+    // Handle whitespace normalization
+    if (/\s/.test(originalText[i])) {
+      // Skip consecutive whitespace
+      while (i + 1 < originalText.length && /\s/.test(originalText[i + 1])) {
+        i++
+      }
+      normalizedPos++ // Count as single space
+    } else {
+      normalizedPos++
+    }
+  }
+  
+  return positionMap
 }
 

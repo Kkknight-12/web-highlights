@@ -5,7 +5,6 @@
 
 export { HighlightEngine } from './highlight-engine.js'
 export { HighlightRestorer } from './highlight-restorer.js'
-export { HighlightStorage } from './highlight-storage.js'
 export { 
   HIGHLIGHT_COLORS, 
   generateHighlightId, 

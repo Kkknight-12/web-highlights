@@ -52,6 +52,10 @@ class HighlightEngine {
       const endBlock = endElement.closest('p, li, div, h1, h2, h3, h4, h5, h6, td, th') || endElement
       const isCrossElement = startBlock !== endBlock
       
+      console.log('[HighlightEngine] Start block:', startBlock)
+      console.log('[HighlightEngine] End block:', endBlock)
+      console.log('[HighlightEngine] Is cross-element:', isCrossElement)
+      
       if (isCrossElement) {
         // Handle cross-element selections by creating separate highlights
         console.log('[HighlightEngine] Cross-element selection detected, creating separate highlights')
@@ -179,15 +183,9 @@ class HighlightEngine {
 
   getBlockElementsInRange(range) {
     const blocks = []
-    const commonAncestor = range.commonAncestorContainer
-    const container = commonAncestor.nodeType === Node.TEXT_NODE ? 
-      commonAncestor.parentElement : commonAncestor
-    
-    // Get all block elements
     const blockSelector = 'p, li, div, h1, h2, h3, h4, h5, h6, td, th'
-    const allBlocks = container.querySelectorAll(blockSelector)
     
-    // Check if selection starts/ends in a block that's not in allBlocks
+    // Get start and end blocks
     const startBlock = range.startContainer.nodeType === Node.TEXT_NODE ?
       range.startContainer.parentElement.closest(blockSelector) :
       range.startContainer.closest(blockSelector)
@@ -196,34 +194,28 @@ class HighlightEngine {
       range.endContainer.parentElement.closest(blockSelector) :
       range.endContainer.closest(blockSelector)
     
-    // If start/end blocks exist and are the container itself, include them
-    if (startBlock === container || endBlock === container) {
-      blocks.push(container)
+    if (!startBlock || !endBlock) return blocks
+    
+    // Single block
+    if (startBlock === endBlock) {
+      blocks.push(startBlock)
       return blocks
     }
     
-    // Filter blocks that are within the selection range
-    let inRange = false
+    // Multiple blocks - just collect them in order
+    let current = startBlock
+    blocks.push(current)
     
-    allBlocks.forEach(block => {
-      if (block === startBlock) {
-        inRange = true
-        blocks.push(block)
-      } else if (inRange && block !== endBlock) {
-        blocks.push(block)
-      } else if (block === endBlock) {
-        blocks.push(block)
-        inRange = false
+    while (current && current !== endBlock) {
+      current = current.nextElementSibling
+      if (current && current.matches(blockSelector)) {
+        blocks.push(current)
       }
-    })
+    }
     
-    // If no blocks found, but we have start/end blocks, use them
-    if (blocks.length === 0 && startBlock && endBlock) {
-      if (startBlock === endBlock) {
-        blocks.push(startBlock)
-      } else {
-        blocks.push(startBlock, endBlock)
-      }
+    // If we didn't reach endBlock, it's not a sibling - just add it
+    if (!blocks.includes(endBlock)) {
+      blocks.push(endBlock)
     }
     
     return blocks

@@ -7,7 +7,7 @@ import { store } from '../store/store'
 import { loadHighlights, setCurrentUrl } from '../store/highlightsSlice'
 
 // Import components
-import { HighlightEngine } from './highlighting/highlight-engine.js'
+import { highlightEngine } from './highlighting/highlight-engine.js'
 import { HighlightRestorer } from './highlighting/highlight-restorer.js'
 import { HighlightButton } from './features/highlight-button.js'
 import { MiniToolbar } from './features/mini-toolbar.js'
@@ -44,13 +44,12 @@ async function initialize() {
   store.dispatch(setCurrentUrl(window.location.href))
   
   // Initialize components
-  const highlightEngine = new HighlightEngine()
   const highlightRestorer = new HighlightRestorer()
   const highlightButton = new HighlightButton()
   const miniToolbar = new MiniToolbar()
   const colorPicker = new ColorPicker()
   
-  highlightEngine.init()
+  highlightEngine.init() // Use singleton instance
   highlightRestorer.init()
   highlightButton.init()
   miniToolbar.init()
