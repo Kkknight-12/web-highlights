@@ -93,12 +93,23 @@ export function getContainerInfo(range) {
   }
   
   // For non-list elements
+  // Get position among similar elements for fallback
+  const sameTagElements = document.getElementsByTagName(meaningfulContainer.tagName)
+  let nthOfType = 0
+  for (let i = 0; i < sameTagElements.length; i++) {
+    if (sameTagElements[i] === meaningfulContainer) {
+      nthOfType = i
+      break
+    }
+  }
+  
   return {
     type: 'element',
     tagName: meaningfulContainer.tagName,
     cleanText: getCleanText(meaningfulContainer),
     id: meaningfulContainer.id || null,
-    className: meaningfulContainer.className || null
+    className: meaningfulContainer.className || null,
+    nthOfType: nthOfType
   }
 }
 

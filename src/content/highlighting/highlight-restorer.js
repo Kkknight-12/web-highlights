@@ -5,7 +5,8 @@
 
 import { store } from '../../store/store'
 import { restoreHighlightElement, batchRestoreHighlights } from './dom-highlighter.js'
-import { findTextInContainer } from './text-finder.js'
+import { findTextInContainer, getCleanText } from './text-finder.js'
+import { RESTORATION_TIMING } from '../../utils/constants.js'
 
 class HighlightRestorer {
   constructor() {
@@ -186,7 +187,7 @@ class HighlightRestorer {
       for (const list of lists) {
         if (list.children.length > itemIndex) {
           const item = list.children[itemIndex]
-          const itemText = this.getCleanText(item)
+          const itemText = getCleanText(item)
           
           // Verify this is the right item by checking text
           if (itemText === containerInfo.cleanText) {
@@ -200,25 +201,73 @@ class HighlightRestorer {
     }
     
     // Handle regular elements
-    const { tagName, className, nthOfType = 0 } = containerInfo
+    const { tagName, className, id, cleanText, nthOfType = 0 } = containerInfo
     
-    // Try to find by class name first
-    if (className) {
-      const elements = document.getElementsByClassName(className)
-      if (elements.length > 0) {
-        return elements[0]
+    // Try to find by ID first (most reliable)
+    if (id) {
+      const element = document.getElementById(id)
+      if (element) {
+        // Verify it's still the right element by checking tag name
+        if (element.tagName === tagName) {
+          console.log('[HighlightRestorer] Found container by ID:', id)
+          return element
+        }
       }
     }
     
-    // Fallback to tag name and position
-    const elements = document.getElementsByTagName(tagName)
-    if (elements.length > nthOfType) {
-      return elements[nthOfType]
+    // Try to find by class name and verify content
+    if (className) {
+      const elements = document.getElementsByClassName(className)
+      // Check all elements with this class to find one with matching content
+      for (const element of elements) {
+        if (element.tagName === tagName) {
+          const elementText = getCleanText(element)
+          // Check if the text contains what we're looking for (partial match)
+          // This handles cases where the container might have additional content
+          // Handle edge case: cleanText might be shorter than CONTENT_MATCH_LENGTH
+          const matchLength = Math.min(cleanText?.length || 0, RESTORATION_TIMING.CONTENT_MATCH_LENGTH)
+          if (cleanText && matchLength > 0 && elementText.includes(cleanText.substring(0, matchLength))) {
+            console.log('[HighlightRestorer] Found container by class and content match')
+            return element
+          }
+        }
+      }
     }
     
+    // Fallback to tag name and position, but verify content
+    const elements = document.getElementsByTagName(tagName)
+    
+    // First try exact position
+    if (elements.length > nthOfType) {
+      const element = elements[nthOfType]
+      const elementText = getCleanText(element)
+      // If content roughly matches, use it
+      // Handle edge case: cleanText might be shorter than CONTENT_MATCH_SHORT
+      const shortMatchLength = Math.min(cleanText?.length || 0, RESTORATION_TIMING.CONTENT_MATCH_SHORT)
+      if (!cleanText || (shortMatchLength > 0 && elementText.includes(cleanText.substring(0, shortMatchLength)))) {
+        console.log('[HighlightRestorer] Found container by position')
+        return element
+      }
+    }
+    
+    // If exact position fails, search all elements for content match
+    if (cleanText) {
+      console.log('[HighlightRestorer] Searching for container by content...')
+      for (const element of elements) {
+        const elementText = getCleanText(element)
+        // Handle edge case: cleanText might be shorter than CONTENT_MATCH_LENGTH
+        const contentMatchLength = Math.min(cleanText.length, RESTORATION_TIMING.CONTENT_MATCH_LENGTH)
+        if (contentMatchLength > 0 && elementText.includes(cleanText.substring(0, contentMatchLength))) {
+          console.log('[HighlightRestorer] Found container by content match')
+          return element
+        }
+      }
+    }
+    
+    console.warn('[HighlightRestorer] Container not found:', containerInfo)
     return null
   }
-  
+  /* REMOVED - Now using imported getCleanText from text-finder.js
   getCleanText(element) {
     const clone = element.cloneNode(true)
     // Remove all highlight spans from the clone
@@ -231,6 +280,7 @@ class HighlightRestorer {
     })
     return clone.textContent
   }
+  */
 
   destroy() {
     // Nothing to clean up

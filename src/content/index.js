@@ -5,6 +5,7 @@
 
 import { store } from '../store/store'
 import { loadHighlights, setCurrentUrl } from '../store/highlightsSlice'
+import { RESTORATION_TIMING } from '../utils/constants.js'
 
 // Import components
 import { highlightEngine } from './highlighting/highlight-engine.js'
@@ -64,8 +65,29 @@ async function initialize() {
   // Load highlights for current page
   await store.dispatch(loadHighlights(window.location.href))
   
-  // Restore highlights
+  /* OLD IMPLEMENTATION - Restored highlights immediately
+  // Issue: Dynamic content might not be loaded yet when navigating back
   components.highlightRestorer.restoreHighlights()
+  */
+  
+  // NEW IMPLEMENTATION - Add delay for dynamic content
+  // When navigating back to a page, content might still be loading
+  // Delay ensures most dynamic content is ready
+  setTimeout(() => {
+    components.highlightRestorer.restoreHighlights()
+  }, RESTORATION_TIMING.INITIAL_DELAY)
+  
+  // Also restore after full page load for late-loading content
+  // This catches content that loads after DOMContentLoaded
+  if (document.readyState !== 'complete') {
+    window.addEventListener('load', () => {
+      // Only retry if no highlights were restored yet
+      if (components.highlightRestorer && components.highlightRestorer.restoredCount === 0) {
+        console.log('[Web Highlighter] Retrying highlight restoration after page load...')
+        components.highlightRestorer.restoreHighlights()
+      }
+    })
+  }
   
   console.log('[Web Highlighter] Ready!')
 }

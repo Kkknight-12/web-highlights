@@ -43,3 +43,10 @@ export const EVENTS = {
 export const STORAGE_TIMING = {
   SAVE_DELAY: 300 // 300ms delay for batching (reduced from 1000ms for better persistence)
 }
+
+// Highlight restoration constants
+export const RESTORATION_TIMING = {
+  INITIAL_DELAY: 100, // Delay before first restoration attempt (ms)
+  CONTENT_MATCH_LENGTH: 100, // Characters to match for content verification
+  CONTENT_MATCH_SHORT: 50 // Shorter match for position-based fallback
+}
