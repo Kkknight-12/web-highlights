@@ -9,6 +9,7 @@ import { hideMiniToolbar, showMiniToolbar } from '../../store/uiSlice'
 import { generateHighlightId, HIGHLIGHT_COLORS } from './highlight-constants.js'
 import { getContainerInfo, findTextPositionInCleanText } from './text-finder.js'
 import { wrapTextNodes, removeHighlightElements, changeHighlightColor } from './dom-highlighter.js'
+import { BLOCK_SELECTOR, COMPONENT_SELECTORS } from '../../utils/constants.js'
 
 class HighlightEngine {
   constructor() {
@@ -16,7 +17,7 @@ class HighlightEngine {
     
     // Arrow function to preserve 'this' binding for proper event listener removal
     this.handleHighlightClick = (e) => {
-      const element = e.target.closest('[data-highlight-id]')
+      const element = e.target.closest(COMPONENT_SELECTORS.HIGHLIGHT)
       if (!element) return
       
       e.preventDefault()
@@ -213,16 +214,16 @@ class HighlightEngine {
 
   getBlockElementsInRange(range) {
     const blocks = []
-    const blockSelector = 'p, li, div, h1, h2, h3, h4, h5, h6, td, th'
+    // Using centralized constant instead of duplicated string
     
     // Get start and end blocks
     const startBlock = range.startContainer.nodeType === Node.TEXT_NODE ?
-      range.startContainer.parentElement.closest(blockSelector) :
-      range.startContainer.closest(blockSelector)
+      range.startContainer.parentElement.closest(BLOCK_SELECTOR) :
+      range.startContainer.closest(BLOCK_SELECTOR)
       
     const endBlock = range.endContainer.nodeType === Node.TEXT_NODE ?
-      range.endContainer.parentElement.closest(blockSelector) :
-      range.endContainer.closest(blockSelector)
+      range.endContainer.parentElement.closest(BLOCK_SELECTOR) :
+      range.endContainer.closest(BLOCK_SELECTOR)
     
     if (!startBlock || !endBlock) return blocks
     
@@ -238,7 +239,7 @@ class HighlightEngine {
     
     while (current && current !== endBlock) {
       current = current.nextElementSibling
-      if (current && current.matches(blockSelector)) {
+      if (current && current.matches(BLOCK_SELECTOR)) {
         blocks.push(current)
       }
     }

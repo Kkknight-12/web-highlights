@@ -6,6 +6,7 @@
 import { CONTAINER_TAGS, BLOCK_TAGS } from './highlight-constants.js'
 // Import cache utilities for DOM text caching
 import { getCachedTextData, setCachedTextData } from './dom-cache.js'
+import { COMPONENT_SELECTORS } from '../../utils/constants.js'
 
 /* OLD IMPLEMENTATION - CLONES ENTIRE DOM SUBTREE
 export function getCleanText(element) {
@@ -44,7 +45,7 @@ export function getCleanText(element) {
   // Fall back to clone method if not cached
   const clone = element.cloneNode(true)
   // Remove all highlight spans from the clone
-  clone.querySelectorAll('.web-highlighter-highlight').forEach(span => {
+  clone.querySelectorAll(COMPONENT_SELECTORS.HIGHLIGHT_SPAN).forEach(span => {
     const parent = span.parentNode
     while (span.firstChild) {
       parent.insertBefore(span.firstChild, span)

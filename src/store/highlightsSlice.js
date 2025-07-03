@@ -1,10 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { safeStorageGet, safeStorageSet } from '../utils/chrome-api.js'
 
 // Async thunk to load highlights from Chrome storage
 export const loadHighlights = createAsyncThunk(
   'highlights/load',
   async (url) => {
-    const result = await chrome.storage.local.get(url)
+    const result = await safeStorageGet(url)
     return { url, highlights: result[url] || [] }
   }
 )
@@ -15,7 +16,10 @@ export const saveHighlights = createAsyncThunk(
   async ({ url, highlights }) => {
     const data = {}
     data[url] = highlights
-    await chrome.storage.local.set(data)
+    const success = await safeStorageSet(data)
+    if (!success) {
+      throw new Error('Failed to save highlights')
+    }
     return { url, highlights }
   }
 )

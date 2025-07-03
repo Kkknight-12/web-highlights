@@ -1,6 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit'
 import highlightsReducer, { clearDirtyFlags } from './highlightsSlice'
 import uiReducer from './uiSlice'
+import { safeStorageSet } from '../utils/chrome-api.js'
+import { STORAGE_TIMING } from '../utils/constants.js'
 
 export const store = configureStore({
   reducer: {
@@ -41,7 +43,6 @@ ISSUES WITH OLD IMPLEMENTATION:
 // NEW IMPLEMENTATION - OPTIMIZED STORAGE WITH BATCHING
 // Debounced save function that only saves dirty URLs
 let saveTimeout = null
-const SAVE_DELAY = 1000 // 1 second delay for batching
 
 const saveDirtyHighlights = () => {
   const state = store.getState()
@@ -56,13 +57,23 @@ const saveDirtyHighlights = () => {
   })
   
   // Save only changed URLs
-  chrome.storage.local.set(updates).then(() => {
-    // Clear dirty flags after successful save
-    store.dispatch(clearDirtyFlags())
-  }).catch(error => {
-    console.error('[Storage] Failed to save highlights:', error)
+  safeStorageSet(updates).then(success => {
+    if (success) {
+      // Clear dirty flags after successful save
+      store.dispatch(clearDirtyFlags())
+    } else {
+      console.error('[Storage] Failed to save highlights')
+    }
   })
 }
+
+// Save any pending changes before page unload
+window.addEventListener('beforeunload', () => {
+  if (saveTimeout) {
+    clearTimeout(saveTimeout)
+    saveDirtyHighlights() // Force save on unload
+  }
+})
 
 // Subscribe to specific highlight changes only
 store.subscribe(() => {
@@ -74,6 +85,6 @@ store.subscribe(() => {
     if (saveTimeout) clearTimeout(saveTimeout)
     
     // Schedule new save
-    saveTimeout = setTimeout(saveDirtyHighlights, SAVE_DELAY)
+    saveTimeout = setTimeout(saveDirtyHighlights, STORAGE_TIMING.SAVE_DELAY)
   }
 })
