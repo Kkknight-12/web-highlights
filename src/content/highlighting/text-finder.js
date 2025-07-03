@@ -4,10 +4,10 @@
  */
 
 import { CONTAINER_TAGS, BLOCK_TAGS } from './highlight-constants.js'
+// Import cache utilities for DOM text caching
+import { getCachedTextData, setCachedTextData } from './dom-cache.js'
 
-/**
- * Get clean text without any highlight spans
- */
+/* OLD IMPLEMENTATION - CLONES ENTIRE DOM SUBTREE
 export function getCleanText(element) {
   const clone = element.cloneNode(true)
   // Remove all highlight spans from the clone
@@ -19,6 +19,44 @@ export function getCleanText(element) {
     span.remove()
   })
   return clone.textContent
+}
+
+ISSUES WITH OLD IMPLEMENTATION:
+1. Clones entire DOM subtree (expensive for large elements)
+2. No caching - runs every time for same element
+3. Creates and destroys DOM nodes unnecessarily
+*/
+
+// NEW IMPLEMENTATION - WITH SMART CACHING
+/**
+ * Get clean text without any highlight spans - CACHED VERSION
+ * Uses WeakMap cache to avoid repeated DOM operations
+ * @param {Element} element - DOM element to extract text from
+ * @returns {string} Clean text content without highlight spans
+ */
+export function getCleanText(element) {
+  // Check cache first
+  const cached = getCachedTextData(element)
+  if (cached && cached.cleanText !== undefined) {
+    return cached.cleanText
+  }
+  
+  // Fall back to clone method if not cached
+  const clone = element.cloneNode(true)
+  // Remove all highlight spans from the clone
+  clone.querySelectorAll('.web-highlighter-highlight').forEach(span => {
+    const parent = span.parentNode
+    while (span.firstChild) {
+      parent.insertBefore(span.firstChild, span)
+    }
+    span.remove()
+  })
+  const cleanText = clone.textContent
+  
+  // Cache the result for future use
+  setCachedTextData(element, { cleanText })
+  
+  return cleanText
 }
 
 /**
@@ -85,9 +123,31 @@ export function findTextPositionInCleanText(text, containerInfo, range) {
   }
   */
   
-  // NEW O(n) IMPLEMENTATION - BUILD POSITION MAPPING ONCE
-  // Create a mapping table between normalized and original positions
-  const positionMap = buildNormalizedPositionMap(cleanText)
+  // NEW O(n) IMPLEMENTATION - BUILD POSITION MAPPING ONCE (WITH CACHING)
+  // Check if we have cached position map for this container
+  const containerElement = containerInfo.element || 
+    (range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE ? 
+      range.commonAncestorContainer : 
+      range.commonAncestorContainer.parentElement)
+  
+  const cached = getCachedTextData(containerElement)
+  let positionMap
+  
+  if (cached && cached.positionMap && cached.normalizedText === normalizedCleanText) {
+    // Use cached position map - avoids O(n) rebuild
+    positionMap = cached.positionMap
+  } else {
+    // Build new position map
+    positionMap = buildNormalizedPositionMap(cleanText)
+    
+    // Cache it for future use
+    const existingCache = getCachedTextData(containerElement) || {}
+    setCachedTextData(containerElement, {
+      ...existingCache,
+      positionMap,
+      normalizedText: normalizedCleanText
+    })
+  }
   
   // Find all occurrences using the pre-built mapping
   const positions = []
@@ -273,8 +333,29 @@ export function findTextInContainer(container, text, textIndex, occurrence = 0) 
   }
   */
   
-  // NEW O(n) IMPLEMENTATION - Build position map once
-  const positionMap = buildNormalizedPositionMap(cleanText)
+  // NEW O(n) IMPLEMENTATION - Build position map once (WITH CACHING)
+  // Try to reuse cached position map if available
+  const containerElement = container.nodeType === Node.ELEMENT_NODE ? 
+    container : container.parentElement
+    
+  const cached = getCachedTextData(containerElement)
+  let positionMap
+  
+  if (cached && cached.positionMap && cached.normalizedText === normalizedCleanText) {
+    // Reuse cached position map
+    positionMap = cached.positionMap
+  } else {
+    // Build new position map
+    positionMap = buildNormalizedPositionMap(cleanText)
+    
+    // Cache for future use
+    const existingCache = getCachedTextData(containerElement) || {}
+    setCachedTextData(containerElement, {
+      ...existingCache,
+      positionMap,
+      normalizedText: normalizedCleanText
+    })
+  }
   
   // Find specific occurrence
   let index = normalizedCleanText.indexOf(normalizedSearchText)
