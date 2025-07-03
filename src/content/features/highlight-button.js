@@ -18,6 +18,7 @@ class HighlightButton {
     this.unsubscribe = null
     
     // Arrow functions to preserve 'this' binding for proper event listener removal
+    /* OLD IMPLEMENTATION - ISSUE: 10ms timeout too short for selection stability
     this.handleTextSelection = () => {
       setTimeout(() => {
         const selectionInfo = getSelectionInfo()
@@ -34,6 +35,35 @@ class HighlightButton {
         const position = calculateButtonPosition(rect)
         store.dispatch(showHighlightButton(position))
       }, 10)
+    }
+    */
+    
+    // NEW IMPLEMENTATION - 50ms timeout for better selection detection
+    // Allows browser time to stabilize selection across different websites
+    // Also adds debug logging to help identify selection timing issues
+    this.handleTextSelection = () => {
+      setTimeout(() => {
+        const selection = window.getSelection()
+        console.log('[HighlightButton] Selection check - rangeCount:', selection.rangeCount, 
+                    'isCollapsed:', selection.isCollapsed, 
+                    'text:', selection.toString().substring(0, 50) + '...')
+        
+        const selectionInfo = getSelectionInfo()
+        
+        if (!selectionInfo) {
+          // Selection cleared or invalid
+          console.log('[HighlightButton] No valid selection, hiding button')
+          store.dispatch(hideHighlightButton())
+          return
+        }
+        
+        const { text, range, rect } = selectionInfo
+        console.log('[HighlightButton] Valid selection found, showing button for:', 
+                    text.substring(0, 50) + '...')
+        
+        const position = calculateButtonPosition(rect)
+        store.dispatch(showHighlightButton(position))
+      }, 50) // Increased from 10ms to 50ms for better reliability
     }
     
     this.handleMouseDown = (e) => {
