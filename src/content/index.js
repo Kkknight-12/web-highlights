@@ -18,6 +18,8 @@ import './styles.css'
 
 // Track initialization state without global variable
 let initialized = false
+// Store component references for cleanup
+let components = {}
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
@@ -44,22 +46,26 @@ async function initialize() {
   store.dispatch(setCurrentUrl(window.location.href))
   
   // Initialize components
-  const highlightRestorer = new HighlightRestorer()
-  const highlightButton = new HighlightButton()
-  const miniToolbar = new MiniToolbar()
-  const colorPicker = new ColorPicker()
+  components = {
+    highlightEngine,
+    highlightRestorer: new HighlightRestorer(),
+    highlightButton: new HighlightButton(),
+    miniToolbar: new MiniToolbar(),
+    colorPicker: new ColorPicker()
+  }
   
-  highlightEngine.init() // Use singleton instance
-  highlightRestorer.init()
-  highlightButton.init()
-  miniToolbar.init()
-  colorPicker.init()
+  // Initialize all components
+  Object.values(components).forEach(component => {
+    if (component.init) {
+      component.init()
+    }
+  })
   
   // Load highlights for current page
   await store.dispatch(loadHighlights(window.location.href))
   
   // Restore highlights
-  highlightRestorer.restoreHighlights()
+  components.highlightRestorer.restoreHighlights()
   
   console.log('[Web Highlighter] Ready!')
 }
@@ -69,9 +75,20 @@ if (import.meta.hot) {
   import.meta.hot.accept()
 }
 
-// Handle page unload
+// Handle page unload - Clean up to prevent memory leaks
 window.addEventListener('unload', () => {
-  console.log('[Web Highlighter] Page unloading')
+  console.log('[Web Highlighter] Page unloading - cleaning up components')
+  
+  // Destroy all components to remove event listeners
+  Object.values(components).forEach(component => {
+    if (component.destroy) {
+      component.destroy()
+    }
+  })
+  
+  // Clear references
+  components = {}
+  initialized = false
 })
 
 // Export for debugging in development only

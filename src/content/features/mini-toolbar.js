@@ -14,6 +14,51 @@ class MiniToolbar {
     this.toolbar = null
     this.currentHighlightId = null
     this.unsubscribe = null
+    
+    // Arrow functions to preserve 'this' binding for proper event listener removal
+    this.handleToolbarClick = (e) => {
+      const button = e.target.closest('button')
+      if (!button) return
+      
+      const action = button.dataset.action
+      const state = store.getState()
+      const highlightId = state.ui.miniToolbar.highlightId || this.currentHighlightId
+      
+      switch (action) {
+        case 'copy':
+          this.copyHighlightText(highlightId)
+          break
+          
+        case 'color':
+          this.requestColorChange(highlightId)
+          break
+          
+        case 'remove':
+          this.requestHighlightDeletion(highlightId)
+          break
+      }
+    }
+    
+    this.handleMouseDown = (e) => {
+      // Don't hide if clicking on toolbar or highlight
+      if (this.toolbar && !this.toolbar.contains(e.target) && 
+          !e.target.closest('.web-highlighter-highlight')) {
+        store.dispatch(hideMiniToolbar())
+      }
+    }
+    
+    this.updateToolbarVisibility = () => {
+      const state = store.getState()
+      const { visible, position, highlightId } = state.ui.miniToolbar
+      
+      if (visible) {
+        this.currentHighlightId = highlightId
+        showElement(this.toolbar, position)
+      } else {
+        hideElement(this.toolbar)
+        this.currentHighlightId = null
+      }
+    }
   }
 
   init() {
@@ -26,7 +71,7 @@ class MiniToolbar {
     this.attachEventListeners()
     
     // Subscribe to store changes
-    this.unsubscribe = store.subscribe(this.updateToolbarVisibility.bind(this))
+    this.unsubscribe = store.subscribe(this.updateToolbarVisibility)
   }
 
   createToolbarUI() {
@@ -36,43 +81,12 @@ class MiniToolbar {
 
   attachEventListeners() {
     // Toolbar button clicks
-    this.toolbar.addEventListener('click', this.handleToolbarClick.bind(this))
+    this.toolbar.addEventListener('click', this.handleToolbarClick)
     
     // Document clicks for hiding
-    document.addEventListener('mousedown', this.handleMouseDown.bind(this))
+    document.addEventListener('mousedown', this.handleMouseDown)
   }
 
-  handleToolbarClick(e) {
-    const button = e.target.closest('button')
-    if (!button) return
-    
-    const action = button.dataset.action
-    const state = store.getState()
-    const highlightId = state.ui.miniToolbar.highlightId || this.currentHighlightId
-    
-    switch (action) {
-      case 'copy':
-        this.copyHighlightText(highlightId)
-        break
-        
-      case 'color':
-        this.requestColorChange(highlightId)
-        break
-        
-      case 'remove':
-        this.requestHighlightDeletion(highlightId)
-        break
-    }
-  }
-
-
-  handleMouseDown(e) {
-    // Don't hide if clicking on toolbar or highlight
-    if (this.toolbar && !this.toolbar.contains(e.target) && 
-        !e.target.closest('.web-highlighter-highlight')) {
-      store.dispatch(hideMiniToolbar())
-    }
-  }
 
   copyHighlightText(highlightId) {
     const element = document.querySelector(`[data-highlight-id="${highlightId}"]`)
@@ -108,16 +122,6 @@ class MiniToolbar {
     store.dispatch(hideMiniToolbar())
   }
 
-  updateToolbarVisibility() {
-    const state = store.getState()
-    const { visible, position } = state.ui.miniToolbar
-    
-    if (visible) {
-      showElement(this.toolbar, position)
-    } else {
-      hideElement(this.toolbar)
-    }
-  }
 
   destroy() {
     // Clean up DOM

@@ -13,13 +13,34 @@ import { wrapTextNodes, removeHighlightElements, changeHighlightColor } from './
 class HighlightEngine {
   constructor() {
     this.unsubscribe = null
+    
+    // Arrow function to preserve 'this' binding for proper event listener removal
+    this.handleHighlightClick = (e) => {
+      const element = e.target.closest('[data-highlight-id]')
+      if (!element) return
+      
+      e.preventDefault()
+      e.stopPropagation()
+      
+      const id = element.dataset.highlightId
+      const rect = element.getBoundingClientRect()
+      
+      // Show mini toolbar through Redux
+      store.dispatch(showMiniToolbar({
+        position: {
+          top: rect.top + window.scrollY,
+          left: rect.left + rect.width / 2
+        },
+        highlightId: id
+      }))
+    }
   }
 
   init() {
     console.log('[HighlightEngine] Initializing')
     
     // Listen for DOM clicks on highlights
-    document.addEventListener('click', this.handleHighlightClick.bind(this), true)
+    document.addEventListener('click', this.handleHighlightClick, true)
   }
 
 
@@ -286,25 +307,6 @@ class HighlightEngine {
     return false
   }
 
-  handleHighlightClick(e) {
-    const element = e.target.closest('[data-highlight-id]')
-    if (!element) return
-    
-    e.preventDefault()
-    e.stopPropagation()
-    
-    const id = element.dataset.highlightId
-    const rect = element.getBoundingClientRect()
-    
-    // Show mini toolbar through Redux
-    store.dispatch(showMiniToolbar({
-      position: {
-        top: rect.top + window.scrollY,
-        left: rect.left + rect.width / 2
-      },
-      highlightId: id
-    }))
-  }
 
   destroy() {
     if (this.unsubscribe) {

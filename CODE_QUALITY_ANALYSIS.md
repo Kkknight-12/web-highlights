@@ -118,7 +118,7 @@ const fragment = document.createDocumentFragment()
 - **Caches**: Clean text, normalized text, and position mappings
 - **Result**: 90%+ reduction in DOM operations for pages with many highlights
 
-#### 3. Memory Leaks (High Risk)
+#### 3. Memory Leaks (High Risk) ✅ FIXED
 ```javascript
 // Event listeners not cleaned up
 document.addEventListener('click', handler)
@@ -128,6 +128,9 @@ document.addEventListener('click', handler)
 this.unsubscribe = store.subscribe()
 // Missing: this.unsubscribe() in destroy()
 ```
+- **Solution**: Used arrow functions in constructors to preserve binding
+- **Added**: Component cleanup on page unload
+- **Result**: Proper event listener removal, no more memory leaks
 
 #### 4. Algorithm Complexity
 | Function | Current | Optimal | Impact | Status |
@@ -192,8 +195,8 @@ function sanitizeText(text) {
 
 ### Priority 1 (Do Now)
 1. Add error handling for Chrome APIs
-2. Fix memory leaks (event listener cleanup)
-3. Implement storage caching
+2. ~~Fix memory leaks (event listener cleanup)~~ ✅ DONE
+3. ~~Implement storage caching~~ ✅ DONE
 
 ### Priority 2 (This Week)
 1. Refactor long functions
@@ -234,8 +237,15 @@ Track:
 
 The extension has a solid foundation but needs optimization before scaling. The main issues are:
 
-1. **Over-engineered architecture** - Simplify to Redux-only
-2. **Performance bottlenecks** - Implement caching and batching
-3. **Code quality issues** - Refactor long functions, add error handling
+1. ~~**Over-engineered architecture** - Simplify to Redux-only~~ ✅ FIXED
+2. ~~**Performance bottlenecks** - Implement caching and batching~~ ✅ FIXED
+3. **Code quality issues** - Refactor long functions, add error handling (Partially addressed)
 
-Addressing these issues will result in a more maintainable, performant, and reliable extension.
+Major improvements completed:
+- Removed EventBus, now Redux-only architecture
+- Fixed O(n²) text search algorithm
+- Implemented storage batching with dirty tracking
+- Added DOM caching with WeakMap
+- Fixed memory leaks with proper event listener cleanup
+
+Remaining work focuses on code quality improvements and error handling.

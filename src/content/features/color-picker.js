@@ -13,6 +13,43 @@ class ColorPicker {
     this.picker = null
     this.currentHighlightId = null
     this.unsubscribe = null
+    
+    // Arrow functions to preserve 'this' binding for proper event listener removal
+    this.handleColorSelect = (e) => {
+      const colorBtn = e.target.closest('.color-option')
+      if (!colorBtn) return
+      
+      const color = colorBtn.dataset.color
+      if (!color || !this.currentHighlightId) return
+      
+      // Update highlight color
+      highlightEngine.changeHighlightColor(this.currentHighlightId, color)
+      
+      // Update selected color in store
+      store.dispatch(setSelectedColor(color))
+      
+      // Hide picker
+      store.dispatch(hideColorPicker())
+    }
+    
+    this.handleMouseDown = (e) => {
+      if (!this.picker.contains(e.target)) {
+        store.dispatch(hideColorPicker())
+      }
+    }
+    
+    this.updatePickerVisibility = () => {
+      const state = store.getState()
+      const { visible, position, highlightId } = state.ui.colorPicker
+      
+      if (visible) {
+        this.currentHighlightId = highlightId
+        showElement(this.picker, position)
+      } else {
+        hideElement(this.picker)
+        this.currentHighlightId = null
+      }
+    }
   }
 
   init() {
@@ -25,7 +62,7 @@ class ColorPicker {
     this.attachEventListeners()
     
     // Subscribe to store changes
-    this.unsubscribe = store.subscribe(this.updatePickerVisibility.bind(this))
+    this.unsubscribe = store.subscribe(this.updatePickerVisibility)
   }
 
   createPickerUI() {
@@ -35,50 +72,12 @@ class ColorPicker {
 
   attachEventListeners() {
     // Color selection
-    this.picker.addEventListener('click', this.handleColorSelect.bind(this))
+    this.picker.addEventListener('click', this.handleColorSelect)
     
     // Document clicks for hiding
-    document.addEventListener('mousedown', this.handleMouseDown.bind(this))
+    document.addEventListener('mousedown', this.handleMouseDown)
   }
 
-  handleColorSelect(e) {
-    const button = e.target.closest('button')
-    if (!button) return
-    
-    const color = button.dataset.color
-    const state = store.getState()
-    const highlightId = state.ui.colorPicker.highlightId || this.currentHighlightId
-    
-    if (highlightId) {
-      // Change existing highlight color
-      highlightEngine.changeHighlightColor(highlightId, color)
-    } else {
-      // Set default color for new highlights
-      store.dispatch(setSelectedColor(color))
-    }
-    
-    // Hide picker
-    store.dispatch(hideColorPicker())
-  }
-
-
-  handleMouseDown(e) {
-    // Don't hide if clicking on picker
-    if (this.picker && !this.picker.contains(e.target)) {
-      store.dispatch(hideColorPicker())
-    }
-  }
-
-  updatePickerVisibility() {
-    const state = store.getState()
-    const { visible, position } = state.ui.colorPicker
-    
-    if (visible) {
-      showElement(this.picker, position)
-    } else {
-      hideElement(this.picker)
-    }
-  }
 
   destroy() {
     // Clean up DOM

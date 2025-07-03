@@ -16,6 +16,72 @@ class HighlightButton {
     this.buttonContainer = null
     this.selectedColor = 'yellow'
     this.unsubscribe = null
+    
+    // Arrow functions to preserve 'this' binding for proper event listener removal
+    this.handleTextSelection = () => {
+      setTimeout(() => {
+        const selectionInfo = getSelectionInfo()
+        
+        if (!selectionInfo) {
+          // Selection cleared
+          store.dispatch(hideHighlightButton())
+          return
+        }
+        
+        const { text, range, rect } = selectionInfo
+        // Selection changed - show button
+        
+        const position = calculateButtonPosition(rect)
+        store.dispatch(showHighlightButton(position))
+      }, 10)
+    }
+    
+    this.handleMouseDown = (e) => {
+      if (this.buttonContainer && !this.buttonContainer.contains(e.target)) {
+        store.dispatch(hideHighlightButton())
+      }
+    }
+    
+    this.handleScroll = () => {
+      store.dispatch(hideHighlightButton())
+    }
+    
+    this.handleHighlightClick = (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      
+      // Create highlight through highlight engine
+      const selection = window.getSelection()
+      const text = selection.toString().trim()
+      if (text) {
+        highlightEngine.createHighlight(text, this.selectedColor, selection)
+      }
+      
+      store.dispatch(hideHighlightButton())
+    }
+    
+    this.handleColorSelect = (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      
+      const color = e.target.dataset.color
+      if (!color) return
+      
+      this.selectedColor = color
+      store.dispatch(setSelectedColor(color))
+      saveColorPreference(color)
+      
+      updateColorSelection(this.buttonContainer, color)
+      
+      // Create highlight with new color
+      const selection = window.getSelection()
+      const text = selection.toString().trim()
+      if (text) {
+        highlightEngine.createHighlight(text, color, selection)
+      }
+      
+      store.dispatch(hideHighlightButton())
+    }
   }
 
   init() {
@@ -42,84 +108,20 @@ class HighlightButton {
   attachEventListeners() {
     // Highlight button click
     const highlightBtn = this.buttonContainer.querySelector('.highlight-btn')
-    highlightBtn.addEventListener('click', this.handleHighlightClick.bind(this))
+    highlightBtn.addEventListener('click', this.handleHighlightClick)
     
     // Color selection
     this.buttonContainer.querySelectorAll('.color-option').forEach(btn => {
-      btn.addEventListener('click', this.handleColorSelect.bind(this))
+      btn.addEventListener('click', this.handleColorSelect)
     })
     
     // Document events
-    document.addEventListener('mouseup', this.handleTextSelection.bind(this))
-    document.addEventListener('mousedown', this.handleMouseDown.bind(this))
-    window.addEventListener('scroll', this.handleScroll.bind(this), { passive: true })
+    document.addEventListener('mouseup', this.handleTextSelection)
+    document.addEventListener('mousedown', this.handleMouseDown)
+    window.addEventListener('scroll', this.handleScroll, { passive: true })
   }
 
 
-  handleHighlightClick(e) {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    // Create highlight through highlight engine
-    const selection = window.getSelection()
-    const text = selection.toString().trim()
-    if (text) {
-      highlightEngine.createHighlight(text, this.selectedColor, selection)
-    }
-    
-    store.dispatch(hideHighlightButton())
-  }
-
-  handleColorSelect(e) {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    const color = e.target.dataset.color
-    if (!color) return
-    
-    this.selectedColor = color
-    store.dispatch(setSelectedColor(color))
-    saveColorPreference(color)
-    
-    updateColorSelection(this.buttonContainer, color)
-    
-    // Create highlight with new color
-    const selection = window.getSelection()
-    const text = selection.toString().trim()
-    if (text) {
-      highlightEngine.createHighlight(text, color, selection)
-    }
-    
-    store.dispatch(hideHighlightButton())
-  }
-
-  handleTextSelection() {
-    setTimeout(() => {
-      const selectionInfo = getSelectionInfo()
-      
-      if (!selectionInfo) {
-        // Selection cleared
-        store.dispatch(hideHighlightButton())
-        return
-      }
-      
-      const { text, range, rect } = selectionInfo
-      // Selection changed - show button
-      
-      const position = calculateButtonPosition(rect)
-      store.dispatch(showHighlightButton(position))
-    }, 10)
-  }
-
-  handleMouseDown(e) {
-    if (this.buttonContainer && !this.buttonContainer.contains(e.target)) {
-      store.dispatch(hideHighlightButton())
-    }
-  }
-
-  handleScroll() {
-    store.dispatch(hideHighlightButton())
-  }
 
 
   updateButtonVisibility() {
