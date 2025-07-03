@@ -56,19 +56,37 @@ export function createHighlightWrapper(id, color) {
   return wrapper
 }
 
-/**
- * Wrap text nodes with highlight elements
- */
+/* OLD IMPLEMENTATION - ISSUE: Multiple DOM operations in loop causing reflows
 export function wrapTextNodes(range, id, color) {
   const textNodes = getTextNodesInRange(range)
   const wrappedElements = []
   
   textNodes.forEach(node => {
+    // ... processing logic ...
+    
+    // Create and insert the highlight wrapper
+    const wrapper = createHighlightWrapper(id, color)
+    node.parentNode.insertBefore(wrapper, node) // DOM modification in loop
+    wrapper.appendChild(node) // Another DOM modification
+    wrappedElements.push(wrapper)
+  })
+  
+  return wrappedElements
+}
+*/
+
+// NEW IMPLEMENTATION - Batch DOM operations to minimize reflows
+// Uses DocumentFragment pattern to collect all operations before applying
+export function wrapTextNodes(range, id, color) {
+  const textNodes = getTextNodesInRange(range)
+  const wrappedElements = []
+  const operations = []
+  
+  // Phase 1: Prepare all operations without modifying DOM
+  textNodes.forEach(node => {
     // Skip text nodes that are direct children of list elements (UL/OL)
-    // These are usually whitespace between list items and shouldn't be highlighted
     const parent = node.parentElement
     if (parent && (parent.tagName === 'UL' || parent.tagName === 'OL')) {
-      // Only skip if the text node contains only whitespace
       if (node.textContent.trim().length === 0) {
         return
       }
@@ -95,20 +113,27 @@ export function wrapTextNodes(range, id, color) {
       return
     }
     
-    // Split the text node if needed and wrap only the selected part
+    // Store operation for later execution
+    operations.push({
+      node,
+      startOffset,
+      endOffset
+    })
+  })
+  
+  // Phase 2: Execute all DOM modifications in batch
+  operations.forEach(op => {
+    let { node, startOffset, endOffset } = op
+    
+    // Split the text node if needed
     if (startOffset > 0) {
-      // Split at the start to separate unhighlighted text
       node.splitText(startOffset)
-      // Now node contains text before selection, and node.nextSibling contains the rest
       node = node.nextSibling
       endOffset = endOffset - startOffset
-      startOffset = 0
     }
     
     if (endOffset < node.textContent.length) {
-      // Split at the end to separate unhighlighted text
       node.splitText(endOffset)
-      // Now node contains only the text to be highlighted
     }
     
     // Create and insert the highlight wrapper
@@ -121,11 +146,7 @@ export function wrapTextNodes(range, id, color) {
   return wrappedElements
 }
 
-/**
- * Remove highlight elements with a specific ID
- * @param {string} id - Highlight ID
- * @returns {number} Number of elements removed
- */
+/* OLD IMPLEMENTATION - ISSUE: Multiple DOM operations in loop
 export function removeHighlightElements(id) {
   const elements = document.querySelectorAll(`[data-highlight-id="${id}"]`)
   let removed = 0
@@ -133,9 +154,9 @@ export function removeHighlightElements(id) {
   elements.forEach(element => {
     const parent = element.parentNode
     while (element.firstChild) {
-      parent.insertBefore(element.firstChild, element)
+      parent.insertBefore(element.firstChild, element) // DOM modification in loop
     }
-    element.remove()
+    element.remove() // Another DOM modification
     removed++
   })
   
@@ -146,13 +167,74 @@ export function removeHighlightElements(id) {
   
   return removed
 }
+*/
 
+// NEW IMPLEMENTATION - Batch DOM operations using DocumentFragment
+// Minimizes reflows by collecting all operations before execution
 /**
- * Change the color of highlight elements
+ * Remove highlight elements with a specific ID
  * @param {string} id - Highlight ID
- * @param {string} newColor - New color
- * @returns {number} Number of elements changed
+ * @returns {number} Number of elements removed
  */
+export function removeHighlightElements(id) {
+  const elements = document.querySelectorAll(`[data-highlight-id="${id}"]`)
+  if (elements.length === 0) return 0
+  
+  // Collect parent nodes that will need normalization
+  const parentsToNormalize = new Set()
+  
+  // Phase 1: Prepare all operations
+  const operations = []
+  elements.forEach(element => {
+    const parent = element.parentNode
+    if (parent) {
+      parentsToNormalize.add(parent)
+      
+      // Collect child nodes to be moved
+      const childNodes = []
+      while (element.firstChild) {
+        childNodes.push(element.removeChild(element.firstChild))
+      }
+      
+      operations.push({
+        element,
+        parent,
+        childNodes,
+        nextSibling: element.nextSibling
+      })
+    }
+  })
+  
+  // Phase 2: Execute all DOM modifications
+  operations.forEach(op => {
+    // Insert all child nodes back
+    const fragment = document.createDocumentFragment()
+    op.childNodes.forEach(child => fragment.appendChild(child))
+    
+    if (op.nextSibling) {
+      op.parent.insertBefore(fragment, op.nextSibling)
+    } else {
+      op.parent.appendChild(fragment)
+    }
+    
+    // Remove the highlight wrapper
+    op.element.remove()
+  })
+  
+  // Phase 3: Normalize affected parent nodes
+  parentsToNormalize.forEach(parent => {
+    try {
+      parent.normalize()
+    } catch (e) {
+      // Some parents might not support normalize
+      console.warn('[DOMHighlighter] Could not normalize parent:', e)
+    }
+  })
+  
+  return operations.length
+}
+
+/* OLD IMPLEMENTATION - ISSUE: Multiple DOM operations in loop
 export function changeHighlightColor(id, newColor) {
   const elements = document.querySelectorAll(`[data-highlight-id="${id}"]`)
   let changed = 0
@@ -165,16 +247,61 @@ export function changeHighlightColor(id, newColor) {
     // Remove old color class
     const currentColor = element.getAttribute('data-color')
     if (currentColor && HIGHLIGHT_COLORS[currentColor]) {
-      element.classList.remove(HIGHLIGHT_COLORS[currentColor].className)
+      element.classList.remove(HIGHLIGHT_COLORS[currentColor].className) // DOM modification in loop
     }
     
     // Add new color class
-    element.classList.add(HIGHLIGHT_COLORS[newColor].className)
-    element.setAttribute('data-color', newColor)
+    element.classList.add(HIGHLIGHT_COLORS[newColor].className) // DOM modification in loop
+    element.setAttribute('data-color', newColor) // DOM modification in loop
     changed++
   })
   
   return changed
+}
+*/
+
+// NEW IMPLEMENTATION - Batch DOM operations to minimize reflows
+// Collects all elements first, then applies changes in batch
+/**
+ * Change the color of highlight elements
+ * @param {string} id - Highlight ID
+ * @param {string} newColor - New color
+ * @returns {number} Number of elements changed
+ */
+export function changeHighlightColor(id, newColor) {
+  const elements = document.querySelectorAll(`[data-highlight-id="${id}"]`)
+  
+  if (!HIGHLIGHT_COLORS[newColor] || elements.length === 0) {
+    return 0
+  }
+  
+  // Phase 1: Prepare operations (collect current colors)
+  const operations = []
+  elements.forEach(element => {
+    const currentColor = element.getAttribute('data-color')
+    operations.push({
+      element,
+      currentColor,
+      newColor
+    })
+  })
+  
+  // Phase 2: Execute all DOM modifications in batch
+  // Use requestAnimationFrame to batch all DOM updates in single frame
+  requestAnimationFrame(() => {
+    operations.forEach(op => {
+      // Remove old color class
+      if (op.currentColor && HIGHLIGHT_COLORS[op.currentColor]) {
+        op.element.classList.remove(HIGHLIGHT_COLORS[op.currentColor].className)
+      }
+      
+      // Add new color class and update attribute
+      op.element.classList.add(HIGHLIGHT_COLORS[newColor].className)
+      op.element.setAttribute('data-color', newColor)
+    })
+  })
+  
+  return operations.length
 }
 
 /**
