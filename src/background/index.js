@@ -1,5 +1,5 @@
 // Background service worker for Chrome Extension
-import { safeStorageSet, safeStorageGet, safeSendTabMessage } from '../utils/chrome-api.js'
+import { storage, tabs, contextMenus, safeStorageGet, safeStorageSet, safeSendTabMessage } from '../utils/chrome-api.js'
 
 console.log('[Web Highlighter] Background service worker started')
 
@@ -43,7 +43,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // Context menu for highlighting
 chrome.runtime.onInstalled.addListener(() => {
   try {
-    chrome.contextMenus.create({
+    contextMenus.create({
       id: 'highlight-selection',
       title: 'Highlight selection',
       contexts: ['selection']

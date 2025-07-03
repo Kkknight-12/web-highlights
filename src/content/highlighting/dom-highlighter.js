@@ -4,6 +4,20 @@
  */
 
 import { HIGHLIGHT_COLORS, HIGHLIGHT_CLASS_BASE } from './highlight-constants.js'
+import { 
+  getParentNode, 
+  getParentElement,
+  safeTextContent,
+  safeInsertBefore,
+  safeAppendChild,
+  safeFirstChild,
+  safeNextSibling,
+  safeNormalize,
+  safeAddClass,
+  safeRemoveClass,
+  safeSetAttribute,
+  safeGetAttribute
+} from '../../utils/dom-safety.js'
 
 /**
  * Get all text nodes within a range
@@ -51,8 +65,8 @@ function getTextNodesInRange(range) {
 export function createHighlightWrapper(id, color) {
   const wrapper = document.createElement('span')
   wrapper.className = `${HIGHLIGHT_CLASS_BASE} ${HIGHLIGHT_COLORS[color].className}`
-  wrapper.setAttribute('data-highlight-id', id)
-  wrapper.setAttribute('data-color', color)
+  safeSetAttribute(wrapper, 'data-highlight-id', id)
+  safeSetAttribute(wrapper, 'data-color', color)
   return wrapper
 }
 
@@ -85,16 +99,16 @@ export function wrapTextNodes(range, id, color) {
   // Phase 1: Prepare all operations without modifying DOM
   textNodes.forEach(node => {
     // Skip text nodes that are direct children of list elements (UL/OL)
-    const parent = node.parentElement
+    const parent = getParentElement(node)
     if (parent && (parent.tagName === 'UL' || parent.tagName === 'OL')) {
-      if (node.textContent.trim().length === 0) {
+      if (safeTextContent(node).trim().length === 0) {
         return
       }
     }
     
     // Determine what part of this text node to highlight
     let startOffset = 0
-    let endOffset = node.textContent.length
+    let endOffset = safeTextContent(node).length
     
     // Adjust offsets based on the selection range
     if (node === range.startContainer && node === range.endContainer) {
@@ -102,7 +116,7 @@ export function wrapTextNodes(range, id, color) {
       endOffset = range.endOffset
     } else if (node === range.startContainer) {
       startOffset = range.startOffset
-      endOffset = node.textContent.length
+      endOffset = safeTextContent(node).length
     } else if (node === range.endContainer) {
       startOffset = 0
       endOffset = range.endOffset
@@ -128,19 +142,23 @@ export function wrapTextNodes(range, id, color) {
     // Split the text node if needed
     if (startOffset > 0) {
       node.splitText(startOffset)
-      node = node.nextSibling
+      node = safeNextSibling(node)
+      if (!node) return // Safety check
       endOffset = endOffset - startOffset
     }
     
-    if (endOffset < node.textContent.length) {
+    if (endOffset < safeTextContent(node).length) {
       node.splitText(endOffset)
     }
     
     // Create and insert the highlight wrapper
     const wrapper = createHighlightWrapper(id, color)
-    node.parentNode.insertBefore(wrapper, node)
-    wrapper.appendChild(node)
-    wrappedElements.push(wrapper)
+    const parent = getParentNode(node)
+    if (parent) {
+      safeInsertBefore(parent, wrapper, node)
+      safeAppendChild(wrapper, node)
+      wrappedElements.push(wrapper)
+    }
   })
   
   return wrappedElements
@@ -186,21 +204,23 @@ export function removeHighlightElements(id) {
   // Phase 1: Prepare all operations
   const operations = []
   elements.forEach(element => {
-    const parent = element.parentNode
+    const parent = getParentNode(element)
     if (parent) {
       parentsToNormalize.add(parent)
       
       // Collect child nodes to be moved
       const childNodes = []
-      while (element.firstChild) {
-        childNodes.push(element.removeChild(element.firstChild))
+      let firstChild = safeFirstChild(element)
+      while (firstChild) {
+        childNodes.push(element.removeChild(firstChild))
+        firstChild = safeFirstChild(element)
       }
       
       operations.push({
         element,
         parent,
         childNodes,
-        nextSibling: element.nextSibling
+        nextSibling: safeNextSibling(element)
       })
     }
   })
@@ -209,26 +229,23 @@ export function removeHighlightElements(id) {
   operations.forEach(op => {
     // Insert all child nodes back
     const fragment = document.createDocumentFragment()
-    op.childNodes.forEach(child => fragment.appendChild(child))
+    op.childNodes.forEach(child => safeAppendChild(fragment, child))
     
     if (op.nextSibling) {
-      op.parent.insertBefore(fragment, op.nextSibling)
+      safeInsertBefore(op.parent, fragment, op.nextSibling)
     } else {
-      op.parent.appendChild(fragment)
+      safeAppendChild(op.parent, fragment)
     }
     
     // Remove the highlight wrapper
-    op.element.remove()
+    if (op.element && typeof op.element.remove === 'function') {
+      op.element.remove()
+    }
   })
   
   // Phase 3: Normalize affected parent nodes
   parentsToNormalize.forEach(parent => {
-    try {
-      parent.normalize()
-    } catch (e) {
-      // Some parents might not support normalize
-      console.warn('[DOMHighlighter] Could not normalize parent:', e)
-    }
+    safeNormalize(parent)
   })
   
   return operations.length
@@ -278,7 +295,7 @@ export function changeHighlightColor(id, newColor) {
   // Phase 1: Prepare operations (collect current colors)
   const operations = []
   elements.forEach(element => {
-    const currentColor = element.getAttribute('data-color')
+    const currentColor = safeGetAttribute(element, 'data-color')
     operations.push({
       element,
       currentColor,
@@ -292,12 +309,12 @@ export function changeHighlightColor(id, newColor) {
     operations.forEach(op => {
       // Remove old color class
       if (op.currentColor && HIGHLIGHT_COLORS[op.currentColor]) {
-        op.element.classList.remove(HIGHLIGHT_COLORS[op.currentColor].className)
+        safeRemoveClass(op.element, HIGHLIGHT_COLORS[op.currentColor].className)
       }
       
       // Add new color class and update attribute
-      op.element.classList.add(HIGHLIGHT_COLORS[newColor].className)
-      op.element.setAttribute('data-color', newColor)
+      safeAddClass(op.element, HIGHLIGHT_COLORS[newColor].className)
+      safeSetAttribute(op.element, 'data-color', newColor)
     })
   })
   

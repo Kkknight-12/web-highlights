@@ -10,6 +10,7 @@ import { generateHighlightId, HIGHLIGHT_COLORS } from './highlight-constants.js'
 import { getContainerInfo, findTextPositionInCleanText } from './text-finder.js'
 import { wrapTextNodes, removeHighlightElements, changeHighlightColor } from './dom-highlighter.js'
 import { BLOCK_SELECTOR, COMPONENT_SELECTORS } from '../../utils/constants.js'
+import { sanitizeForStorage, sanitizeUrl } from '../../utils/text-sanitizer.js'
 
 class HighlightEngine {
   constructor() {
@@ -117,13 +118,13 @@ class HighlightEngine {
       // Recalculate position with the actual highlighted text
       const actualPosition = findTextPositionInCleanText(actualHighlightedText, containerInfo, range)
       
-      // Create highlight object
+      // Create highlight object with sanitized data
       const highlight = {
         id,
-        text: actualHighlightedText, // Use actual highlighted text
+        text: sanitizeForStorage(actualHighlightedText), // Sanitize text for safe storage
         color,
         timestamp: Date.now(),
-        url: window.location.href,
+        url: sanitizeUrl(window.location.href) || window.location.href, // Sanitize URL
         elements: elements.length,
         location: {
           container: containerInfo,
@@ -206,10 +207,10 @@ class HighlightEngine {
         
         const highlight = {
           id,
-          text: actualBlockText, // Use actual highlighted text
+          text: sanitizeForStorage(actualBlockText), // Sanitize text for safe storage
           color,
           timestamp: Date.now(),
-          url,
+          url: sanitizeUrl(url) || url, // Sanitize URL
           elements: elements.length,
           location: {
             container: containerInfo,

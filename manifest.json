@@ -42,5 +42,9 @@
     "16": "assets/icons8-highlighter-16.png",
     "48": "assets/icons8-highlighter-48.png",
     "128": "assets/icons8-highlighter-100.png"
+  },
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline';"
   }
 }

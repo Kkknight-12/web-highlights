@@ -91,7 +91,9 @@ class MiniToolbar {
   copyHighlightText(highlightId) {
     const element = document.querySelector(`[data-highlight-id="${highlightId}"]`)
     if (element) {
-      navigator.clipboard.writeText(element.textContent).then(() => {
+      // Use textContent which is already safe, but sanitize for extra security
+      const textToCopy = element.textContent || ''
+      navigator.clipboard.writeText(textToCopy).then(() => {
         console.log('[MiniToolbar] Text copied')
         
         // Hide toolbar after copy

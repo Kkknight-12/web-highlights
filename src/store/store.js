@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit'
 import highlightsReducer, { clearDirtyFlags } from './highlightsSlice'
 import uiReducer from './uiSlice'
-import { safeStorageSet } from '../utils/chrome-api.js'
+import { storage } from '../utils/chrome-api.js'
 import { STORAGE_TIMING } from '../utils/constants.js'
 
 export const store = configureStore({
@@ -57,14 +57,14 @@ const saveDirtyHighlights = () => {
   })
   
   // Save only changed URLs
-  safeStorageSet(updates).then(success => {
-    if (success) {
+  storage.set(updates)
+    .then(() => {
       // Clear dirty flags after successful save
       store.dispatch(clearDirtyFlags())
-    } else {
-      console.error('[Storage] Failed to save highlights')
-    }
-  })
+    })
+    .catch(error => {
+      console.error('[Storage] Failed to save highlights:', error)
+    })
 }
 
 // Save any pending changes before page unload
