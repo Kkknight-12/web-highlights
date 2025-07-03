@@ -341,3 +341,55 @@ export function restoreHighlightElement(node, start, end, id, color) {
   }
 }
 
+/**
+ * Batch restore multiple highlight elements for better performance
+ * @param {Array} operations - Array of {node, start, end, id, color} objects
+ * @returns {number} Number of successfully restored highlights
+ */
+export function batchRestoreHighlights(operations) {
+  if (!operations || operations.length === 0) {
+    return 0
+  }
+  
+  let restored = 0
+  
+  // Group operations by parent node for better performance
+  const operationsByParent = new Map()
+  
+  operations.forEach(op => {
+    if (op.node && op.node.nodeType === Node.TEXT_NODE && op.node.parentNode) {
+      const parent = op.node.parentNode
+      if (!operationsByParent.has(parent)) {
+        operationsByParent.set(parent, [])
+      }
+      operationsByParent.get(parent).push(op)
+    }
+  })
+  
+  // Process each parent's operations together
+  operationsByParent.forEach((parentOps, parent) => {
+    // Sort operations by position to avoid conflicts
+    parentOps.sort((a, b) => {
+      if (a.node === b.node) {
+        return a.start - b.start
+      }
+      // Compare node positions
+      const position = a.node.compareDocumentPosition(b.node)
+      return position & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1
+    })
+    
+    // Apply operations in reverse order to avoid offset shifts
+    for (let i = parentOps.length - 1; i >= 0; i--) {
+      const op = parentOps[i]
+      try {
+        const success = restoreHighlightElement(op.node, op.start, op.end, op.id, op.color)
+        if (success) restored++
+      } catch (error) {
+        console.error('[DOMHighlighter] Batch restore failed for operation:', error)
+      }
+    }
+  })
+  
+  return restored
+}
+

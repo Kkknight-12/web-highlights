@@ -96,17 +96,17 @@ store.dispatch(action) // Hard to test
 
 ### Critical Performance Issues
 
-#### 1. DOM Operations (High Impact)
-```javascript
-// Current: Multiple DOM traversals
-textNodes.forEach(node => {
-  // DOM manipulation in loop
-})
-
-// Better: Batch operations
-const fragment = document.createDocumentFragment()
-// Build in fragment, insert once
-```
+#### 1. DOM Operations (High Impact) ✅ FIXED
+- ~~Multiple DOM traversals in loops~~
+- ~~Individual DOM modifications causing reflows~~
+- ~~No batching of operations~~
+- **Solution**: Implemented comprehensive DOM batching across all modules:
+  - `wrapTextNodes()`: Two-phase approach (prepare operations, then execute)
+  - `removeHighlightElements()`: Uses DocumentFragment for batch operations
+  - `changeHighlightColor()`: Uses requestAnimationFrame for batching
+  - `batchRestoreHighlights()`: Groups operations by parent node
+  - `restoreHighlights()`: Batches ALL highlight restorations in single frame
+- **Result**: Significantly reduced reflows and improved performance
 
 #### 2. Storage Operations (Medium Impact) ✅ FIXED
 - ~~Loading ALL highlights on every operation~~
@@ -257,6 +257,12 @@ Major improvements completed:
 - Extracted common constants to centralized file
 - Created base component class for consistent cleanup patterns
 - Reduced code duplication across modules
+- Implemented comprehensive DOM batching for all operations:
+  - Two-phase approach in wrapTextNodes
+  - DocumentFragment usage in removeHighlightElements
+  - RequestAnimationFrame in changeHighlightColor
+  - Batch restore function for highlight restoration
+  - Complete batching in highlight-restorer.js
 
 Remaining work:
 - Split long functions (createHighlight, findTextInContainer)
