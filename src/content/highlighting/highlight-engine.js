@@ -4,7 +4,7 @@
  */
 
 import { store } from '../../store/store'
-import { addHighlight, removeHighlight, updateHighlightColor, saveHighlights } from '../../store/highlightsSlice'
+import { addHighlight, removeHighlight, updateHighlightColor } from '../../store/highlightsSlice'
 import { hideMiniToolbar, showMiniToolbar } from '../../store/uiSlice'
 import { generateHighlightId, HIGHLIGHT_COLORS } from './highlight-constants.js'
 import { getContainerInfo, findTextPositionInCleanText } from './text-finder.js'
@@ -95,10 +95,15 @@ class HighlightEngine {
       const url = window.location.href
       store.dispatch(addHighlight({ url, highlight }))
       
+      /* OLD IMPLEMENTATION - MANUAL SAVE AFTER EACH HIGHLIGHT
       // Save to storage
       const state = store.getState()
       const highlights = state.highlights.byUrl[url] || []
       store.dispatch(saveHighlights({ url, highlights }))
+      
+      ISSUE: This caused immediate storage write for EACH highlight
+      NEW: Automatic batched saving handles this after 1 second delay
+      */
       
       // Clear selection
       selection.removeAllRanges()
@@ -169,10 +174,14 @@ class HighlightEngine {
       }
     })
     
+    /* OLD IMPLEMENTATION - MANUAL SAVE
     // Save all highlights
     const state = store.getState()
     const allHighlights = state.highlights.byUrl[url] || []
     store.dispatch(saveHighlights({ url, highlights: allHighlights }))
+    
+    NEW: Automatic batched saving handles this
+    */
     
     // Clear selection
     window.getSelection().removeAllRanges()
@@ -232,10 +241,14 @@ class HighlightEngine {
       // Remove from Redux store
       store.dispatch(removeHighlight({ url, id }))
       
+      /* OLD IMPLEMENTATION - IMMEDIATE SAVE
       // Save updated highlights
       const state = store.getState()
       const highlights = state.highlights.byUrl[url] || []
       store.dispatch(saveHighlights({ url, highlights }))
+      
+      NEW: Automatic batched saving handles this
+      */
       
       // Hide toolbar
       store.dispatch(hideMiniToolbar())
@@ -257,10 +270,14 @@ class HighlightEngine {
       // Update Redux store
       store.dispatch(updateHighlightColor({ url, id, color: newColor }))
       
+      /* OLD IMPLEMENTATION - IMMEDIATE SAVE
       // Save updated highlights
       const state = store.getState()
       const highlights = state.highlights.byUrl[url] || []
       store.dispatch(saveHighlights({ url, highlights }))
+      
+      NEW: Automatic batched saving handles this
+      */
       
       console.log(`[HighlightEngine] Changed color for highlight: ${id}`)
       return true

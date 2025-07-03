@@ -26,7 +26,8 @@ const highlightsSlice = createSlice({
     byUrl: {},
     currentUrl: null,
     loading: false,
-    error: null
+    error: null,
+    dirtyUrls: [] // Track which URLs have unsaved changes (using array instead of Set for Redux serialization)
   },
   reducers: {
     addHighlight: (state, action) => {
@@ -35,12 +36,20 @@ const highlightsSlice = createSlice({
         state.byUrl[url] = []
       }
       state.byUrl[url].push(highlight)
+      // Mark URL as dirty (needs saving) - avoid duplicates
+      if (!state.dirtyUrls.includes(url)) {
+        state.dirtyUrls.push(url)
+      }
     },
     
     removeHighlight: (state, action) => {
       const { url, id } = action.payload
       if (state.byUrl[url]) {
         state.byUrl[url] = state.byUrl[url].filter(h => h.id !== id)
+        // Mark URL as dirty
+        if (!state.dirtyUrls.includes(url)) {
+          state.dirtyUrls.push(url)
+        }
       }
     },
     
@@ -51,6 +60,10 @@ const highlightsSlice = createSlice({
         const highlight = highlights.find(h => h.id === id)
         if (highlight) {
           highlight.color = color
+          // Mark URL as dirty
+          if (!state.dirtyUrls.includes(url)) {
+            state.dirtyUrls.push(url)
+          }
         }
       }
     },
@@ -63,9 +76,24 @@ const highlightsSlice = createSlice({
       const url = action.payload
       if (url) {
         delete state.byUrl[url]
+        // Mark URL as dirty
+        if (!state.dirtyUrls.includes(url)) {
+          state.dirtyUrls.push(url)
+        }
       } else {
+        // Mark all URLs as dirty before clearing
+        Object.keys(state.byUrl).forEach(url => {
+          if (!state.dirtyUrls.includes(url)) {
+            state.dirtyUrls.push(url)
+          }
+        })
         state.byUrl = {}
       }
+    },
+    
+    clearDirtyFlags: (state) => {
+      // Clear all dirty flags after successful save
+      state.dirtyUrls = []
     }
   },
   
@@ -100,7 +128,8 @@ export const {
   removeHighlight, 
   updateHighlightColor, 
   setCurrentUrl,
-  clearHighlights 
+  clearHighlights,
+  clearDirtyFlags 
 } = highlightsSlice.actions
 
 export default highlightsSlice.reducer
