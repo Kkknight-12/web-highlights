@@ -13,6 +13,7 @@ import { HighlightRestorer } from './highlighting/highlight-restorer.js'
 import { HighlightButton } from './features/highlight-button.js'
 import { MiniToolbar } from './features/mini-toolbar.js'
 import { ColorPicker } from './features/color-picker.js'
+import { setupNavigationDetection } from './features/navigation.js'
 
 // Import styles
 import './styles.css'
@@ -61,6 +62,9 @@ async function initialize() {
       component.init()
     }
   })
+  
+  // Setup navigation detection for SPAs and back/forward navigation
+  setupNavigationDetection()
   
   // Load highlights for current page
   await store.dispatch(loadHighlights(window.location.href))

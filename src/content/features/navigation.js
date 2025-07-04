@@ -1,9 +1,12 @@
 // Navigation detection for SPAs
 import { store } from '../../store/store'
 import { loadHighlights, setCurrentUrl } from '../../store/highlightsSlice'
+import { HighlightRestorer } from '../highlighting/highlight-restorer.js'
+import { RESTORATION_TIMING } from '../../utils/constants.js'
 
 export function setupNavigationDetection() {
   let lastUrl = window.location.href
+  const highlightRestorer = new HighlightRestorer()
   
   const checkUrlChange = async () => {
     const currentUrl = window.location.href
@@ -16,6 +19,12 @@ export function setupNavigationDetection() {
       
       // Load highlights for new page
       await store.dispatch(loadHighlights(currentUrl))
+      
+      // Restore highlights after a short delay to ensure page content is ready
+      setTimeout(() => {
+        console.log('[Navigation] Restoring highlights for:', currentUrl)
+        highlightRestorer.restoreHighlights()
+      }, RESTORATION_TIMING.INITIAL_DELAY)
     }
   }
   
