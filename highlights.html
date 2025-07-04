@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Highlights - Web Highlighter</title>
+    <link rel="stylesheet" href="highlights.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>All Highlights</h1>
+            <div class="header-actions">
+                <input type="text" id="searchInput" placeholder="Search highlights..." class="search-input">
+                <button class="export-button" id="exportButton">Export All</button>
+            </div>
+        </header>
+
+        <main>
+            <div id="highlightsList" class="highlights-list">
+                <div class="loading">Loading highlights...</div>
+            </div>
+        </main>
+    </div>
+
+    <script src="src/highlights/highlights.js" type="module"></script>
+</body>
+</html>
