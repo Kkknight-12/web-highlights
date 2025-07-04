@@ -62,6 +62,7 @@ function createColorOptionButton(color, config, isSelected) {
   return button
 }
 
+/* OLD IMPLEMENTATION - Had redundant highlight button
 export function createButtonContainer(selectedColor = 'yellow') {
   const container = document.createElement('div')
   container.className = 'highlighter-ui-component highlight-button-container'
@@ -89,6 +90,21 @@ export function createButtonContainer(selectedColor = 'yellow') {
   // Append elements to container
   container.appendChild(highlightBtn)
   container.appendChild(colorOptions)
+  
+  return container
+}
+*/
+
+// NEW IMPLEMENTATION - Palette only mode (single-click highlighting)
+export function createButtonContainer(selectedColor = 'yellow') {
+  const container = document.createElement('div')
+  container.className = 'highlighter-ui-component palette-mode'
+  
+  // Create color option buttons directly in container
+  Object.entries(HIGHLIGHT_COLORS).forEach(([color, config]) => {
+    const colorBtn = createColorOptionButton(color, config, color === selectedColor)
+    container.appendChild(colorBtn)
+  })
   
   return container
 }

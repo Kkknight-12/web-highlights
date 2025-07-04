@@ -76,6 +76,7 @@ class HighlightButton {
       store.dispatch(hideHighlightButton())
     }
     
+    /* OLD IMPLEMENTATION - Separate handlers for button and color selection
     this.handleHighlightClick = (e) => {
       e.preventDefault()
       e.stopPropagation()
@@ -89,7 +90,9 @@ class HighlightButton {
       
       store.dispatch(hideHighlightButton())
     }
+    */
     
+    // NEW IMPLEMENTATION - Single handler for color clicks (palette mode)
     this.handleColorSelect = (e) => {
       e.preventDefault()
       e.stopPropagation()
@@ -97,13 +100,15 @@ class HighlightButton {
       const color = e.target.dataset.color
       if (!color) return
       
+      // Update selected color
       this.selectedColor = color
       store.dispatch(setSelectedColor(color))
       saveColorPreference(color)
       
+      // Update UI to show new selection
       updateColorSelection(this.buttonContainer, color)
       
-      // Create highlight with new color
+      // Create highlight immediately with selected color
       const selection = window.getSelection()
       const text = selection.toString().trim()
       if (text) {
@@ -136,11 +141,14 @@ class HighlightButton {
   }
 
   attachEventListeners() {
+    /* OLD IMPLEMENTATION - Had separate highlight button
     // Highlight button click
     const highlightBtn = this.buttonContainer.querySelector('.highlight-btn')
     highlightBtn.addEventListener('click', this.handleHighlightClick)
+    */
     
-    // Color selection
+    // NEW IMPLEMENTATION - Color buttons only (palette mode)
+    // Color selection - clicking any color immediately highlights
     this.buttonContainer.querySelectorAll('.color-option').forEach(btn => {
       btn.addEventListener('click', this.handleColorSelect)
     })

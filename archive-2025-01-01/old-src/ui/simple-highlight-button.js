@@ -33,7 +33,7 @@
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
       display: none !important;
       white-space: nowrap !important;
-      backdrop-filter: blur(10px) !important;
+      backdrop-filter: blur(0.05px) !important;
       animation: fadeIn 0.2s ease-out !important;
     }
     

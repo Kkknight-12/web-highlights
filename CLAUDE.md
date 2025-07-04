@@ -192,7 +192,13 @@ src/
 4. **Discuss solution** - Before coding
 5. **Code minimal fix** - Simple and focused
 6. **Test with user** - Verify in Chrome
-7. **Commit changes** - Clean commits
+7. **Ask permission to commit** - NEVER commit without user approval
+8. **Commit changes** - Only after user confirms testing is complete
+
+## Important Git Rules
+- **NEVER commit without asking** - Always wait for user permission
+- **Test first, commit later** - User must confirm fix works
+- **Ask explicitly** - "Should I commit these changes?"
 
 ## Project Status
 

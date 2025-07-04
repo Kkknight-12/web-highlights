@@ -20,7 +20,7 @@
   filter: brightness(0.9);
 }
 
-/* Color classes */
+/* Color classes - original more visible colors */
 .highlight-yellow {
   background-color: rgba(255, 224, 102, 0.4) !important;
   border-bottom: 2px solid rgba(255, 224, 102, 0.8) !important;
@@ -41,7 +41,7 @@
   border-bottom: 2px solid rgba(252, 165, 165, 0.8) !important;
 }
 
-/* Highlight button container */
+/* OLD STYLES - Kept for reference
 .highlight-button-container {
   display: none;
   flex-direction: row !important;
@@ -55,50 +55,73 @@
   animation: slideIn 0.2s ease-out !important;
   gap: 8px !important;
 }
+*/
 
-.highlight-button-container.visible {
+/* NEW STYLES - Palette only mode - Night Owl dark blue with glassmorphism */
+.palette-mode {
+  display: none;
+  flex-direction: row !important;
+  align-items: center !important;
+  /* Night Owl inspired dark blue with glassmorphism */
+  background: rgba(1, 22, 39, 0.75) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 10px !important;
+  padding: 8px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  animation: fadeInScale 0.15s ease-out !important;
+  gap: 4px !important;
+}
+
+.palette-mode.visible {
   display: flex !important;
 }
 
-/* Color options */
-.color-options {
-  display: flex !important;
-  gap: 6px !important;
-  padding: 0 6px !important;
-  border-left: 1px solid rgba(0, 0, 0, 0.1) !important;
-}
-
-.color-option {
+/* Color option buttons - glassy circles */
+.palette-mode .color-option {
   width: 24px !important;
   height: 24px !important;
-  border-radius: 50% !important;
-  border: 2px solid transparent !important;
+  border-radius: 12px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
   padding: 0 !important;
   position: relative !important;
+  background-clip: padding-box !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2),
+              inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
 }
 
-.color-option:hover {
-  transform: scale(1.15) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+.palette-mode .color-option:hover {
+  transform: scale(1.1) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3),
+              inset 0 1px 1px rgba(255, 255, 255, 0.2) !important;
 }
 
-.color-option.selected {
-  border-color: #4b5563 !important;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8) !important;
+/* Selected state - glowing ring */
+.palette-mode .color-option.selected {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2),
+              0 4px 8px rgba(0, 0, 0, 0.3),
+              inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
 }
 
-.color-option.selected::after {
-  content: '✓' !important;
+/* Small check for selected */
+.palette-mode .color-option.selected::after {
+  content: '' !important;
   position: absolute !important;
   top: 50% !important;
   left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  color: white !important;
-  font-size: 12px !important;
-  font-weight: bold !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  width: 8px !important;
+  height: 6px !important;
+  transform: translate(-50%, -60%) rotate(-45deg) !important;
+  border-left: 2px solid rgba(255, 255, 255, 0.9) !important;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.9) !important;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)) !important;
 }
 
 /* Main highlight button */
@@ -232,5 +255,16 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
