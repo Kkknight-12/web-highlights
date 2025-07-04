@@ -335,6 +335,16 @@ export function restoreHighlightElement(node, start, end, id, color) {
     return false
   }
   
+  // Validate offsets are within bounds
+  const textLength = node.textContent.length
+  if (start < 0 || start > textLength || end < 0 || end > textLength || start > end) {
+    console.warn('[DOMHighlighter] Invalid offsets for restore:', {
+      start, end, textLength, 
+      text: node.textContent.substring(0, 20) + '...'
+    })
+    return false
+  }
+  
   const range = document.createRange()
   range.setStart(node, start)
   range.setEnd(node, end)
