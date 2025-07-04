@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Highlighter</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="popup-container">
+        <header>
+            <div class="header-content">
+                <img src="assets/icons8-highlighter-48.png" alt="Highlighter" class="logo">
+                <h1>Web Highlighter</h1>
+            </div>
+            <p class="tagline">Select text on any page and click the highlight button!</p>
+        </header>
+
+        <main>
+            <div class="stats-container">
+                <div class="stat-item">
+                    <span class="stat-number" id="pageHighlights">0</span>
+                    <span class="stat-label">highlights on this page</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="totalHighlights">0</span>
+                    <span class="stat-label">total highlights</span>
+                </div>
+            </div>
+
+            <!-- Color breakdown section -->
+            <div class="color-breakdown" id="colorBreakdown" style="display: none;">
+                <!-- Color indicators will be added dynamically -->
+            </div>
+
+            <!-- Highlights list section -->
+            <div class="highlights-section">
+                <!-- Loading state -->
+                <div class="loading-state" id="loadingState" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading highlights...</p>
+                </div>
+
+                <!-- Empty state for current page -->
+                <div class="empty-state" id="emptyStateCurrentPage" style="display: none;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20.707 5.826l-3.535-3.533a.999.999 0 0 0-1.408 0L7.096 10.96a.996.996 0 0 0-.273.488l-1.024 4.437a.998.998 0 0 0 1.228 1.228l4.437-1.024a.996.996 0 0 0 .488-.273l8.669-8.669a.999.999 0 0 0 .086-1.321z" fill="currentColor" opacity="0.2"/>
+                    </svg>
+                    <p>No highlights on this page yet</p>
+                    <p class="empty-state-hint">Select text and click the highlight button to start</p>
+                </div>
+
+                <!-- Empty state for all highlights -->
+                <div class="empty-state" id="emptyStateGlobal" style="display: none;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20.707 5.826l-3.535-3.533a.999.999 0 0 0-1.408 0L7.096 10.96a.996.996 0 0 0-.273.488l-1.024 4.437a.998.998 0 0 0 1.228 1.228l4.437-1.024a.996.996 0 0 0 .488-.273l8.669-8.669a.999.999 0 0 0 .086-1.321z" fill="currentColor" opacity="0.2"/>
+                    </svg>
+                    <p>Start highlighting text on any webpage</p>
+                    <p class="empty-state-hint">Your highlights will appear here</p>
+                </div>
+
+                <!-- Highlights list container -->
+                <div class="highlights-list" id="highlightsList">
+                    <!-- Highlight items will be added dynamically -->
+                </div>
+
+                <!-- View all link -->
+                <div class="view-all-container" id="viewAllContainer" style="display: none;">
+                    <a href="#" class="view-all-link" id="viewAllLink">
+                        View all <span id="totalCount">0</span> highlights
+                    </a>
+                </div>
+            </div>
+
+            <div class="actions-container">
+                <button class="action-button" id="viewHighlights">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    View All Highlights
+                </button>
+                
+                <button class="action-button" id="exportHighlights">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Export
+                </button>
+            </div>
+        </main>
+
+        <footer>
+            <a href="#" class="footer-link" id="settingsLink">Settings</a>
+            <span class="separator">•</span>
+            <a href="https://github.com/Kkknight-12/chrome-web-highlighter" target="_blank" class="footer-link">GitHub</a>
+        </footer>
+    </div>
+
+    <script src="src/popup/popup.js" type="module"></script>
+</body>
+</html>
