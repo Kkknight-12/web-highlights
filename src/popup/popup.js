@@ -2,13 +2,18 @@
  * Popup functionality for Web Highlighter
  */
 
+import { COLORS } from '../theme/theme-constants.js'
+
 // State
 const state = {
   currentTab: null,
   highlights: [],
   pageHighlights: 0,
   totalHighlights: 0,
-  pageHighlightsList: [] // Array of highlights for current page
+  pageHighlightsList: [], // Array of highlights for current page
+  allHighlightsList: [], // All highlights from all pages
+  currentFilter: 'page', // Default to 'page' view
+  searchQuery: ''
 }
 
 // Initialize popup
@@ -64,6 +69,7 @@ async function loadHighlights() {
     }
     
     state.highlights = allHighlights
+    state.allHighlightsList = allHighlights
     state.totalHighlights = totalCount
     
     // Get highlights for current page
@@ -92,26 +98,35 @@ async function loadHighlights() {
 
 // Update statistics display
 function updateStats() {
-  document.getElementById('pageHighlights').textContent = state.pageHighlights
-  document.getElementById('totalHighlights').textContent = state.totalHighlights
+  // Stats have been replaced with search and filters
+  // This function is kept for backward compatibility but does nothing
 }
 
 // Attach event listeners
 function attachEventListeners() {
-  // View all highlights
-  document.getElementById('viewHighlights').addEventListener('click', () => {
-    // Open highlights page in new tab
-    chrome.tabs.create({ url: 'highlights.html' })
+  // Search functionality
+  const searchInput = document.getElementById('searchInput')
+  searchInput.addEventListener('input', (e) => {
+    state.searchQuery = e.target.value.toLowerCase()
+    renderHighlightsList()
+  })
+  
+  // Filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      // Remove active class from all buttons
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'))
+      // Add active class to clicked button
+      e.target.classList.add('active')
+      // Update filter state
+      state.currentFilter = e.target.dataset.filter
+      // Re-render list
+      renderHighlightsList()
+    })
   })
   
   // Export highlights
   document.getElementById('exportHighlights').addEventListener('click', handleExport)
-  
-  // Settings link
-  document.getElementById('settingsLink').addEventListener('click', (e) => {
-    e.preventDefault()
-    chrome.runtime.openOptionsPage()
-  })
 }
 
 // Handle export functionality
@@ -184,15 +199,29 @@ function showErrorState(message) {
 // Render highlights list
 function renderHighlightsList() {
   const highlightsList = document.getElementById('highlightsList')
-  const viewAllContainer = document.getElementById('viewAllContainer')
   
   // Clear existing content
   highlightsList.innerHTML = ''
   
+  // Get filtered highlights
+  let filteredHighlights = getFilteredHighlights()
+  
+  // Apply search filter
+  if (state.searchQuery) {
+    filteredHighlights = filteredHighlights.filter(h => 
+      h.text.toLowerCase().includes(state.searchQuery) ||
+      (h.url && h.url.toLowerCase().includes(state.searchQuery))
+    )
+  }
+  
   // Check if we have highlights
-  if (state.pageHighlightsList.length === 0) {
+  if (filteredHighlights.length === 0) {
     // Show appropriate empty state
-    if (state.totalHighlights === 0) {
+    if (state.searchQuery || state.currentFilter !== 'all') {
+      document.getElementById('emptyStateCurrentPage').style.display = 'block'
+      const emptyText = document.querySelector('#emptyStateCurrentPage p')
+      emptyText.textContent = 'No highlights found'
+    } else if (state.totalHighlights === 0) {
       document.getElementById('emptyStateGlobal').style.display = 'block'
     } else {
       document.getElementById('emptyStateCurrentPage').style.display = 'block'
@@ -201,30 +230,27 @@ function renderHighlightsList() {
     return
   }
   
+  // Hide empty states
+  document.getElementById('emptyStateCurrentPage').style.display = 'none'
+  document.getElementById('emptyStateGlobal').style.display = 'none'
+  
   // Show highlights list
   highlightsList.style.display = 'block'
   
   // Sort highlights by timestamp (newest first)
-  const sortedHighlights = [...state.pageHighlightsList].sort((a, b) => 
+  const sortedHighlights = [...filteredHighlights].sort((a, b) => 
     (b.timestamp || 0) - (a.timestamp || 0)
   )
   
-  // Show only first 10 highlights
-  const highlightsToShow = sortedHighlights.slice(0, 10)
+  // No need to manage scrollable class - CSS handles it automatically
   
-  // Create highlight items
-  highlightsToShow.forEach(highlight => {
+  // Create highlight items for all highlights (no limit)
+  sortedHighlights.forEach(highlight => {
     const highlightItem = createHighlightItem(highlight)
     highlightsList.appendChild(highlightItem)
   })
   
-  // Show "View All" link if more than 10 highlights
-  if (state.pageHighlightsList.length > 10) {
-    viewAllContainer.style.display = 'block'
-    document.getElementById('totalCount').textContent = state.pageHighlightsList.length
-  } else {
-    viewAllContainer.style.display = 'none'
-  }
+  // All highlights are now shown with scroll when needed
 }
 
 // Create individual highlight item element
@@ -310,15 +336,42 @@ function createHighlightItem(highlight) {
   return item
 }
 
+// Get filtered highlights based on current filter
+function getFilteredHighlights() {
+  const now = Date.now()
+  const dayInMs = 24 * 60 * 60 * 1000
+  const weekInMs = 7 * dayInMs
+  
+  switch (state.currentFilter) {
+    case 'page':
+      // Only highlights from current page
+      return state.pageHighlightsList
+      
+    case 'today':
+      // Highlights from today (all pages)
+      return state.allHighlightsList.filter(h => {
+        const timestamp = h.timestamp || 0
+        return (now - timestamp) < dayInMs
+      })
+      
+    case 'week':
+      // Highlights from this week (all pages)
+      return state.allHighlightsList.filter(h => {
+        const timestamp = h.timestamp || 0
+        return (now - timestamp) < weekInMs
+      })
+      
+    case 'all':
+    default:
+      // All highlights from all pages
+      return state.allHighlightsList
+  }
+}
+
 // Helper function to get highlight color
 function getHighlightColor(colorName) {
-  const colors = {
-    yellow: '#ffe066',
-    green: '#6ee7b7',
-    blue: '#93c5fd',
-    pink: '#fca5a5'
-  }
-  return colors[colorName] || colors.yellow
+  // Use theme colors
+  return COLORS.highlights[colorName] || COLORS.highlights.yellow
 }
 
 // Truncate text to specified length
