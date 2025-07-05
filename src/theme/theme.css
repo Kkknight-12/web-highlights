@@ -1,0 +1,156 @@
+/**
+ * Theme CSS Variables
+ * Synced with theme-constants.js
+ * This file defines CSS custom properties that can be used in all stylesheets
+ */
+
+:root {
+  /* Primary Colors */
+  --color-primary-dark: rgba(1, 22, 39, 0.95);
+  --color-primary-darker: rgba(1, 22, 39, 0.98);
+  --color-primary-light: rgba(1, 22, 39, 0.75);
+  --color-primary-solid: #011627;
+  
+  /* Text Colors */
+  --color-text-primary: rgba(255, 255, 255, 0.9);
+  --color-text-secondary: rgba(255, 255, 255, 0.6);
+  --color-text-tertiary: rgba(255, 255, 255, 0.4);
+  --color-text-inverse: #1f2937;
+  
+  /* Surface Colors */
+  --color-surface-glass: rgba(255, 255, 255, 0.05);
+  --color-surface-glass-hover: rgba(255, 255, 255, 0.1);
+  --color-surface-border: rgba(255, 255, 255, 0.1);
+  --color-surface-border-light: rgba(255, 255, 255, 0.2);
+  --color-surface-border-hover: rgba(255, 255, 255, 0.3);
+  
+  /* Highlight Colors */
+  --color-highlight-yellow: #ffe066;
+  --color-highlight-green: #6ee7b7;
+  --color-highlight-blue: #93c5fd;
+  --color-highlight-pink: #fca5a5;
+  
+  /* Highlight Background Colors */
+  --color-highlight-bg-yellow: rgba(255, 224, 102, 0.3);
+  --color-highlight-bg-green: rgba(110, 231, 183, 0.3);
+  --color-highlight-bg-blue: rgba(147, 197, 253, 0.3);
+  --color-highlight-bg-pink: rgba(252, 165, 165, 0.3);
+  
+  /* Status Colors */
+  --color-error: #ef4444;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+  
+  /* Effects */
+  --effect-blur: 10px;
+  --effect-border-radius: 8px;
+  --effect-border-radius-small: 4px;
+  --effect-transition: all 0.2s ease;
+  --effect-transition-fast: all 0.1s ease;
+  --effect-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --effect-shadow-small: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --effect-shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --effect-shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Shadow colors for drop-shadow filter */
+  --color-shadow-dark: rgba(0, 0, 0, 0.5);
+  --color-shadow-medium: rgba(0, 0, 0, 0.3);
+  --color-shadow-light: rgba(0, 0, 0, 0.2);
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-xxl: 24px;
+  
+  /* Typography */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-xxl: 24px;
+  --font-size-xxxl: 28px;
+  
+  /* Font Weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Line Heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* Z-Index Layers */
+  --z-index-base: 0;
+  --z-index-highlight: 10;
+  --z-index-highlight-button: 100;
+  --z-index-mini-toolbar: 200;
+  --z-index-color-picker: 300;
+  --z-index-modal: 1000;
+  --z-index-tooltip: 1100;
+}
+
+/* Utility Classes */
+.theme-glassmorphic {
+  background: var(--color-surface-glass);
+  backdrop-filter: blur(var(--effect-blur));
+  -webkit-backdrop-filter: blur(var(--effect-blur));
+  border: 1px solid var(--color-surface-border);
+}
+
+.theme-glassmorphic:hover {
+  background: var(--color-surface-glass-hover);
+  border-color: var(--color-surface-border-hover);
+}
+
+/* Dark theme base styles */
+.theme-dark {
+  background: var(--color-primary-dark);
+  color: var(--color-text-primary);
+}
+
+.theme-dark-header {
+  background: var(--color-primary-darker);
+  backdrop-filter: blur(var(--effect-blur));
+  -webkit-backdrop-filter: blur(var(--effect-blur));
+  border-bottom: 1px solid var(--color-surface-border);
+}
+
+/* Component styles using variables */
+.theme-button {
+  background: var(--color-surface-glass);
+  backdrop-filter: blur(var(--effect-blur));
+  -webkit-backdrop-filter: blur(var(--effect-blur));
+  border: 1px solid var(--color-surface-border);
+  color: var(--color-text-primary);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--effect-border-radius);
+  transition: var(--effect-transition);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+}
+
+.theme-button:hover {
+  background: var(--color-surface-glass-hover);
+  border-color: var(--color-surface-border-hover);
+  color: var(--color-text-primary);
+}
+
+/* Highlight color classes */
+.highlight-yellow { background-color: var(--color-highlight-bg-yellow); }
+.highlight-green { background-color: var(--color-highlight-bg-green); }
+.highlight-blue { background-color: var(--color-highlight-bg-blue); }
+.highlight-pink { background-color: var(--color-highlight-bg-pink); }
+
+/* Text utilities */
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-tertiary { color: var(--color-text-tertiary); }
