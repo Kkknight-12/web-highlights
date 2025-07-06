@@ -167,10 +167,11 @@
   -webkit-backdrop-filter: blur(var(--effect-blur)) !important;
   border: 1px solid var(--color-surface-border) !important;
   border-radius: var(--effect-border-radius) !important;
-  padding: var(--spacing-sm) !important;
+  padding: var(--spacing-md) var(--spacing-sm) !important;
   box-shadow: var(--effect-shadow-large) !important;
   animation: fadeInScale 0.15s ease-out !important;
   gap: var(--spacing-xs) !important;
+  cursor: move !important;
 }
 
 .mini-toolbar.visible {
@@ -323,29 +324,10 @@
   transition: none !important;
 }
 
-.drag-handle,
-.toolbar-drag-handle {
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  -moz-user-select: none !important;
-  -ms-user-select: none !important;
-}
-
 /* Prevent text selection while dragging */
 body.dragging-ui {
   user-select: none !important;
   -webkit-user-select: none !important;
   -moz-user-select: none !important;
   -ms-user-select: none !important;
-}
-
-/* Smooth transitions when not dragging - removed to prevent lag */
-/* .highlighter-ui-component:not(.dragging) {
-  transition: all 0.2s ease !important;
-} */
-
-/* Drag handle hover effect */
-.drag-handle:hover,
-.toolbar-drag-handle:hover {
-  color: rgba(255, 255, 255, 0.8) !important;
 }

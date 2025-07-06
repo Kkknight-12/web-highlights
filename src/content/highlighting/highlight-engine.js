@@ -11,6 +11,7 @@ import { getContainerInfo, findTextPositionInCleanText } from './text-finder.js'
 import { wrapTextNodes, removeHighlightElements, changeHighlightColor } from './dom-highlighter.js'
 import { BLOCK_SELECTOR, COMPONENT_SELECTORS } from '../../utils/constants.js'
 import { sanitizeForStorage, sanitizeUrl } from '../../utils/text-sanitizer.js'
+import { calculateToolbarPosition } from '../ui/position-calculator.js'
 
 class HighlightEngine {
   constructor() {
@@ -38,11 +39,8 @@ class HighlightEngine {
       
       // Show mini toolbar through Redux
       // NEW: Pass link information to show navigate button when needed
-      // FIX: Use calculateToolbarPosition to get proper x,y coordinates
-      const toolbarPosition = {
-        x: rect.left + window.scrollX + (rect.width / 2) - 75, // Center toolbar
-        y: rect.bottom + window.scrollY + 5 // Below highlight
-      }
+      // Use calculateToolbarPosition to get proper coordinates
+      const toolbarPosition = calculateToolbarPosition(rect)
       
       console.log('[HighlightEngine] Showing mini toolbar at:', toolbarPosition, 'isLink:', isLink)
       

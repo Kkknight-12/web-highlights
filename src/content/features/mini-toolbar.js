@@ -122,31 +122,7 @@ class MiniToolbar {
   createToolbarUI(options = {}) {
     this.toolbar = createToolbarContainer(options)
     
-    // Add drag handle visual indicator
-    const dragHandle = document.createElement('div')
-    dragHandle.className = 'toolbar-drag-handle'
-    dragHandle.innerHTML = '⋮⋮'
-    dragHandle.style.cssText = `
-      position: absolute;
-      top: 50%;
-      left: -12px;
-      transform: translateY(-50%);
-      font-size: 10px;
-      color: rgba(255, 255, 255, 0.4);
-      cursor: move;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-      padding: 4px 2px;
-    `
-    this.toolbar.appendChild(dragHandle)
-    
-    // Show drag handle on hover
-    this.toolbar.addEventListener('mouseenter', () => {
-      dragHandle.style.opacity = '1'
-    })
-    this.toolbar.addEventListener('mouseleave', () => {
-      dragHandle.style.opacity = '0'
-    })
+    // No drag handle needed - whole toolbar is draggable
     
     document.body.appendChild(this.toolbar)
     console.log('[MiniToolbar] Created toolbar element:', this.toolbar)
@@ -161,11 +137,8 @@ class MiniToolbar {
       this.dragCleanup()
     }
     
-    // Simple draggable - no callbacks, no state saving
-    // Only use drag handle if specified
-    this.dragCleanup = makeDraggable(this.toolbar, {
-      handle: this.toolbar.querySelector('.toolbar-drag-handle')
-    })
+    // Make whole toolbar draggable
+    this.dragCleanup = makeDraggable(this.toolbar)
   }
 
   attachEventListeners() {

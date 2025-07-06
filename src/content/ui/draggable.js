@@ -31,6 +31,15 @@ export function makeDraggable(element, options = {}) {
     // Only handle left click
     if (e.button !== 0) return
 
+    // Don't start drag if clicking on a button or interactive element
+    const clickedButton = e.target.closest('button')
+    const clickedLink = e.target.closest('a')
+    const clickedInput = e.target.closest('input, textarea, select')
+    
+    if (clickedButton || clickedLink || clickedInput) {
+      return // Let the click event bubble up normally
+    }
+
     isDragging = true
     startX = e.clientX
     startY = e.clientY
