@@ -96,6 +96,35 @@ class HighlightEngine {
             sendResponse({ success: true })
           }
           break
+          
+        case 'restoreHighlight':
+          // Restore a deleted highlight (for undo)
+          if (request.highlight) {
+            const restored = this.restoreSingleHighlight(request.highlight)
+            sendResponse({ success: restored })
+          }
+          break
+          
+        case 'markPendingDelete':
+          // Mark highlight as pending deletion (visual state)
+          const pendingElement = document.querySelector(`[data-highlight-id="${request.highlightId}"]`)
+          if (pendingElement) {
+            pendingElement.style.opacity = '0.5'
+            pendingElement.style.textDecoration = 'line-through'
+            pendingElement.style.transition = 'opacity 0.3s'
+            sendResponse({ success: true })
+          }
+          break
+          
+        case 'removePendingDelete':
+          // Remove pending deletion visual state
+          const unpendingElement = document.querySelector(`[data-highlight-id="${request.highlightId}"]`)
+          if (unpendingElement) {
+            unpendingElement.style.opacity = '1'
+            unpendingElement.style.textDecoration = 'none'
+            sendResponse({ success: true })
+          }
+          break
       }
     })
   }
@@ -396,6 +425,51 @@ class HighlightEngine {
     }
     
     document.removeEventListener('click', this.handleHighlightClick)
+  }
+  
+  // Restore a single highlight (for undo functionality)
+  restoreSingleHighlight(highlight) {
+    try {
+      // Find the container using the stored context
+      const containers = getContainerInfo(highlight.text)
+      
+      for (const container of containers) {
+        // Try to find matching text position
+        const position = findTextPositionInCleanText(
+          container.cleanText,
+          highlight.text,
+          highlight.textBefore,
+          highlight.textAfter
+        )
+        
+        if (position && position.index >= 0) {
+          // Create highlight elements
+          const highlightElements = wrapTextNodes(
+            container.container,
+            position.index,
+            position.index + highlight.text.length,
+            highlight.id,
+            highlight.color
+          )
+          
+          if (highlightElements && highlightElements.length > 0) {
+            console.log(`[HighlightEngine] Restored highlight: ${highlight.id}`)
+            
+            // Also add to Redux store for consistency
+            const url = window.location.href
+            store.dispatch(addHighlight({ url, highlight }))
+            
+            return true
+          }
+        }
+      }
+      
+      console.warn('[HighlightEngine] Could not restore highlight - text not found')
+      return false
+    } catch (error) {
+      console.error('[HighlightEngine] Error restoring highlight:', error)
+      return false
+    }
   }
 }
 

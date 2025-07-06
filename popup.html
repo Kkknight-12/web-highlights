@@ -129,6 +129,17 @@
         </main>
     </div>
 
+    <!-- Undo Toast (hidden by default) -->
+    <div class="undo-toast" id="undoToast" style="display: none;">
+        <div class="undo-content">
+            <span class="undo-message">Highlight deleted</span>
+            <button class="undo-button" id="undoButton">Undo</button>
+        </div>
+        <div class="undo-progress">
+            <div class="undo-progress-bar" id="undoProgressBar"></div>
+        </div>
+    </div>
+
     <script src="src/popup/popup.js" type="module"></script>
 </body>
 </html>
