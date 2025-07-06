@@ -12,6 +12,7 @@ import { handleUndo, setExecutePendingDelete } from './modules/popup-undo.js'
 import { renderHighlightsList } from './modules/popup-ui.js'
 import { updateClearButtonVisibility } from './modules/popup-ui-state.js'
 import { updateStats } from './modules/popup-utils.js'
+import { setupViewNavigation } from './modules/popup-view-manager.js'
 
 // Set the executePendingDelete function to avoid circular dependency
 setExecutePendingDelete(executePendingDelete)
@@ -43,6 +44,9 @@ async function initializePopup() {
     
     // Attach event listeners
     attachEventListeners()
+    
+    // Setup view navigation
+    setupViewNavigation()
   } catch (error) {
     console.error('[Popup] Initialization error:', error)
   }

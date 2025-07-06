@@ -10,12 +10,14 @@ import { getSelectionInfo } from '../ui/selection-handler.js'
 import { showElement, hideElement } from '../ui/visibility-manager.js'
 import { saveColorPreference, loadColorPreference } from '../ui/storage-helper.js'
 import { highlightEngine } from '../highlighting/highlight-engine.js'
+import { makeDraggable } from '../ui/draggable.js'
 
 class HighlightButton {
   constructor() {
     this.buttonContainer = null
     this.selectedColor = 'yellow'
     this.unsubscribe = null
+    this.dragCleanup = null
     
     // Arrow functions to preserve 'this' binding for proper event listener removal
     /* OLD IMPLEMENTATION - ISSUE: 10ms timeout too short for selection stability
@@ -32,6 +34,7 @@ class HighlightButton {
         const { text, range, rect } = selectionInfo
         // Selection changed - show button
         
+        // Always calculate fresh position based on selection
         const position = calculateButtonPosition(rect)
         store.dispatch(showHighlightButton(position))
       }, 10)
@@ -42,28 +45,25 @@ class HighlightButton {
     // Allows browser time to stabilize selection across different websites
     // Also adds debug logging to help identify selection timing issues
     this.handleTextSelection = () => {
+      // Use minimal delay for better responsiveness
       setTimeout(() => {
         const selection = window.getSelection()
-        console.log('[HighlightButton] Selection check - rangeCount:', selection.rangeCount, 
-                    'isCollapsed:', selection.isCollapsed, 
-                    'text:', selection.toString().substring(0, 50) + '...')
         
         const selectionInfo = getSelectionInfo()
         
         if (!selectionInfo) {
           // Selection cleared or invalid
-          console.log('[HighlightButton] No valid selection, hiding button')
           store.dispatch(hideHighlightButton())
           return
         }
         
         const { text, range, rect } = selectionInfo
-        console.log('[HighlightButton] Valid selection found, showing button for:', 
-                    text.substring(0, 50) + '...')
         
+        // Always calculate fresh position based on selection
         const position = calculateButtonPosition(rect)
+        console.log('[HighlightButton] Showing button at position:', position)
         store.dispatch(showHighlightButton(position))
-      }, 50) // Increased from 10ms to 50ms for better reliability
+      }, 10) // Reduced back to 10ms for faster response
     }
     
     this.handleMouseDown = (e) => {
@@ -125,6 +125,9 @@ class HighlightButton {
     // Create UI
     this.createUI()
     
+    // Make draggable
+    this.setupDraggable()
+    
     // Attach event listeners
     this.attachEventListeners()
     
@@ -137,7 +140,38 @@ class HighlightButton {
 
   createUI() {
     this.buttonContainer = createButtonContainer(this.selectedColor)
+    
+    // Add drag handle visual indicator
+    const dragHandle = document.createElement('div')
+    dragHandle.className = 'drag-handle'
+    dragHandle.innerHTML = '⋮⋮'
+    dragHandle.style.cssText = `
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.4);
+      cursor: move;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    `
+    this.buttonContainer.appendChild(dragHandle)
+    
+    // Show drag handle on hover
+    this.buttonContainer.addEventListener('mouseenter', () => {
+      dragHandle.style.opacity = '1'
+    })
+    this.buttonContainer.addEventListener('mouseleave', () => {
+      dragHandle.style.opacity = '0'
+    })
+    
     document.body.appendChild(this.buttonContainer)
+  }
+  
+  setupDraggable() {
+    // Simple draggable - no callbacks, no state saving
+    this.dragCleanup = makeDraggable(this.buttonContainer)
   }
 
   attachEventListeners() {
@@ -167,9 +201,17 @@ class HighlightButton {
     const { visible, position } = state.ui.highlightButton
     
     if (visible) {
+      // Always reset position when showing - this ensures fresh start each time
       showElement(this.buttonContainer, position)
     } else {
       hideElement(this.buttonContainer)
+    }
+  }
+  
+  handleResize = () => {
+    // Ensure button stays within viewport after resize
+    if (this.buttonContainer) {
+      ensureWithinViewport(this.buttonContainer)
     }
   }
 
@@ -188,6 +230,10 @@ class HighlightButton {
     
     if (this.unsubscribe) {
       this.unsubscribe()
+    }
+    
+    if (this.dragCleanup) {
+      this.dragCleanup()
     }
     
     document.removeEventListener('mouseup', this.handleTextSelection)

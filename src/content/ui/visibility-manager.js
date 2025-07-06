@@ -4,10 +4,21 @@
  */
 
 export function showElement(element, position) {
-  if (!element) return
+  if (!element) {
+    console.error('[VisibilityManager] No element to show')
+    return
+  }
   
-  element.style.left = `${position.x}px`
-  element.style.top = `${position.y}px`
+  // Only set position if element is not already visible or being dragged
+  const isAlreadyVisible = element.classList.contains('visible')
+  const isBeingDragged = element.classList.contains('dragging')
+  
+  if (!isAlreadyVisible && !isBeingDragged) {
+    console.log('[VisibilityManager] Setting initial position:', position)
+    element.style.left = `${position.x}px`
+    element.style.top = `${position.y}px`
+  }
+  
   element.classList.add('visible')
 }
 

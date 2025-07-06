@@ -113,7 +113,8 @@ function exportAsJSON(highlights, scope, state) {
       url: h.url,
       color: h.color,
       timestamp: h.timestamp,
-      dateCreated: new Date(h.timestamp).toLocaleString()
+      dateCreated: new Date(h.timestamp).toLocaleString(),
+      note: h.note || ''
     }))
   }
   
@@ -158,7 +159,11 @@ function exportAsText(highlights, scope, state) {
       const time = new Date(h.timestamp).toLocaleTimeString()
       
       textContent += `${index + 1}. [${h.color.toUpperCase()}] - ${date} at ${time}\n`
-      textContent += `   "${h.text}"\n\n`
+      textContent += `   "${h.text}"\n`
+      if (h.note && h.note.trim()) {
+        textContent += `   📝 Note: ${h.note}\n`
+      }
+      textContent += `\n`
     })
     
     textContent += `\n`

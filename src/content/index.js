@@ -7,6 +7,9 @@ import { store } from '../store/store'
 import { loadHighlights, setCurrentUrl } from '../store/highlightsSlice'
 import { RESTORATION_TIMING } from '../utils/constants.js'
 
+// Import theme manager - initializes automatically
+import themeManager from '../theme/theme-manager.js'
+
 // Import components
 import { highlightEngine } from './highlighting/highlight-engine.js'
 import { HighlightRestorer } from './highlighting/highlight-restorer.js'
@@ -43,6 +46,9 @@ async function initialize() {
   if (window.location.href.startsWith('chrome://')) {
     return
   }
+  
+  // Initialize theme (safe to call multiple times)
+  themeManager.init()
   
   // Set current URL in store
   store.dispatch(setCurrentUrl(window.location.href))

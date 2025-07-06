@@ -4,15 +4,13 @@
  */
 
 export function calculateButtonPosition(rect) {
-  const scrollX = window.pageXOffset || document.documentElement.scrollLeft
-  const scrollY = window.pageYOffset || document.documentElement.scrollTop
-  
+  // For fixed position elements, we use viewport coordinates (not page coordinates)
   // Calculate palette width: 4 colors * 24px + 3 gaps * 4px + padding 16px = 124px
   const paletteWidth = 124
   
   return {
-    x: rect.left + scrollX + (rect.width / 2) - (paletteWidth / 2), // Center palette
-    y: rect.top + scrollY - 50 // Above selection (consistent with color picker)
+    x: rect.left + (rect.width / 2) - (paletteWidth / 2), // Center palette
+    y: rect.top - 50 // Above selection
   }
 }
 

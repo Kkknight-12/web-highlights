@@ -116,7 +116,7 @@ export function wrapTextNodes(range, id, color) {
       endOffset = range.endOffset
     } else if (node === range.startContainer) {
       startOffset = range.startOffset
-      endOffset = safeTextContent(node).length
+    endOffset = safeTextContent(node).length
     } else if (node === range.endContainer) {
       startOffset = 0
       endOffset = range.endOffset
@@ -419,4 +419,3 @@ export function batchRestoreHighlights(operations) {
   
   return restored
 }
-

@@ -7,6 +7,7 @@ import { COLORS } from '../../theme/theme-constants.js'
 import { truncateText, getRelativeTime } from './popup-utils.js'
 import { getFilteredHighlights, applyFilters } from './popup-filters.js'
 import { handleCopyHighlight, handleDeleteHighlight, handleHighlightClick } from './popup-clear.js'
+import { showDetailView } from './popup-view-manager.js'
 
 // Helper function to get highlight color
 function getHighlightColor(colorName) {
@@ -50,6 +51,24 @@ function createHighlightItem(highlight, state, renderHighlightsList) {
   timestamp.textContent = getRelativeTime(highlight.timestamp)
   
   metadata.appendChild(timestamp)
+  
+  // Add note indicator if highlight has a note
+  if (highlight.note && highlight.note.trim()) {
+    const noteIndicator = document.createElement('span')
+    noteIndicator.className = 'highlight-note-indicator'
+    noteIndicator.innerHTML = `
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `
+    noteIndicator.title = highlight.note.substring(0, 50) + (highlight.note.length > 50 ? '...' : '')
+    
+    metadata.appendChild(document.createTextNode(' • '))
+    metadata.appendChild(noteIndicator)
+  }
   
   // Create actions container
   const actions = document.createElement('div')
@@ -95,9 +114,13 @@ function createHighlightItem(highlight, state, renderHighlightsList) {
   item.appendChild(content)
   item.appendChild(actions)
   
-  // Click to scroll to highlight
-  item.addEventListener('click', () => {
-    handleHighlightClick(highlight.id)
+  // Click to show detail view
+  item.addEventListener('click', (e) => {
+    // Don't trigger if clicking on action buttons
+    if (e.target.closest('.highlight-actions')) return
+    
+    // Show detail view for this highlight
+    showDetailView(highlight.id)
   })
   
   return item

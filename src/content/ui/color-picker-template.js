@@ -4,6 +4,7 @@
  */
 
 import { HIGHLIGHT_COLORS } from '../highlighting/highlight-constants.js'
+import { COLORS } from '../../theme/theme-constants.js'
 
 /* OLD IMPLEMENTATION - SECURITY ISSUE: Used innerHTML which could lead to XSS
 export function createColorPickerHTML() {
@@ -33,7 +34,8 @@ function createColorButton(color, config) {
   const button = document.createElement('button')
   button.className = 'color-option'
   button.setAttribute('data-color', color)
-  button.style.backgroundColor = config.hex
+  // Use theme colors
+  button.style.backgroundColor = COLORS.highlights[color]
   button.setAttribute('title', color)
   return button
 }

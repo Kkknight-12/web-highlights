@@ -125,6 +125,14 @@ class HighlightEngine {
             sendResponse({ success: true })
           }
           break
+          
+        case 'changeHighlightColor':
+          // Change highlight color
+          if (request.highlightId && request.newColor) {
+            const success = this.changeHighlightColor(request.highlightId, request.newColor)
+            sendResponse({ success })
+          }
+          break
       }
     })
   }

@@ -16,7 +16,9 @@ export const state = {
   selectedColors: [], // Track selected color filters
   undoData: null, // Store deleted highlight for undo
   undoTimer: null, // Timer for auto-dismiss
-  pendingDeleteId: null // ID of highlight pending deletion (during undo period)
+  pendingDeleteId: null, // ID of highlight pending deletion (during undo period)
+  currentView: 'list', // 'list' or 'detail'
+  selectedHighlight: null // Currently selected highlight for detail view
 }
 
 // State update functions

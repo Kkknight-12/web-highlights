@@ -3,13 +3,15 @@
 
 /* Base styles for all UI components */
 .highlighter-ui-component {
-  position: absolute !important;
+  position: fixed !important;
   z-index: 2147483647 !important;
   font-family: var(--font-family) !important;
   font-size: var(--font-size-base) !important;
   line-height: var(--line-height-normal) !important;
   color: var(--color-text-primary) !important;
   box-sizing: border-box !important;
+  /* Prevent re-renders during drag */
+  will-change: transform !important;
 }
 
 /* Highlight styles */
@@ -295,4 +297,47 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* Draggable UI Elements */
+.highlighter-ui-component.dragging {
+  opacity: 0.8 !important;
+  cursor: move !important;
+  box-shadow: var(--effect-shadow-large) !important;
+}
+
+/* Prevent any transitions on palette mode to avoid drag lag */
+.palette-mode {
+  transition: none !important;
+}
+
+.palette-mode.dragging {
+  transition: none !important;
+}
+
+.drag-handle,
+.toolbar-drag-handle {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Prevent text selection while dragging */
+body.dragging-ui {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Smooth transitions when not dragging - removed to prevent lag */
+/* .highlighter-ui-component:not(.dragging) {
+  transition: all 0.2s ease !important;
+} */
+
+/* Drag handle hover effect */
+.drag-handle:hover,
+.toolbar-drag-handle:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
 }

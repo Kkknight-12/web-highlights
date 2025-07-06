@@ -3,11 +3,13 @@
  * Shared constants for highlighting functionality
  */
 
+import { COLORS } from '../../theme/theme-constants.js'
+
 export const HIGHLIGHT_COLORS = {
-  yellow: { className: 'highlight-yellow', hex: '#ffe066' },
-  green: { className: 'highlight-green', hex: '#6ee7b7' },
-  blue: { className: 'highlight-blue', hex: '#93c5fd' },
-  pink: { className: 'highlight-pink', hex: '#fca5a5' }
+  yellow: { className: 'highlight-yellow', hex: COLORS.highlights.yellow },
+  green: { className: 'highlight-green', hex: COLORS.highlights.green },
+  blue: { className: 'highlight-blue', hex: COLORS.highlights.blue },
+  pink: { className: 'highlight-pink', hex: COLORS.highlights.pink }
 }
 
 export function generateHighlightId() {

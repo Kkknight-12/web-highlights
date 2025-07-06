@@ -3,6 +3,8 @@
  * Safe DOM construction for the mini toolbar
  */
 
+import { ICONS } from './icons.js'
+
 /* OLD IMPLEMENTATION - SECURITY ISSUE: Used innerHTML which could lead to XSS
 export function createToolbarHTML() {
   return `
@@ -52,37 +54,24 @@ function createToolbarButton(action, title, svgContent) {
   return button
 }
 
-export function createToolbarContainer() {
+export function createToolbarContainer(options = {}) {
   const container = document.createElement('div')
   container.className = 'highlighter-ui-component mini-toolbar'
   
+  // Navigate button - only shown when highlight is inside a link
+  if (options.isLink) {
+    const navigateBtn = createToolbarButton('navigate', 'Navigate to link', ICONS.externalLink)
+    container.appendChild(navigateBtn)
+  }
+  
   // Copy button
-  const copyBtn = createToolbarButton(
-    'copy',
-    'Copy text',
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-    '<rect x="9" y="9" width="13" height="13" rx="2"/>' +
-    '<path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>' +
-    '</svg>'
-  )
+  const copyBtn = createToolbarButton('copy', 'Copy text', ICONS.copy)
   
   // Color button
-  const colorBtn = createToolbarButton(
-    'color',
-    'Change color',
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">' +
-    '<circle cx="12" cy="12" r="10" fill="#FFE066"/>' +
-    '</svg>'
-  )
+  const colorBtn = createToolbarButton('color', 'Change color', ICONS.palette)
   
   // Remove button
-  const removeBtn = createToolbarButton(
-    'remove',
-    'Remove highlight',
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-    '<path d="M6 18L18 6M6 6l12 12"/>' +
-    '</svg>'
-  )
+  const removeBtn = createToolbarButton('remove', 'Remove highlight', ICONS.trash)
   
   // Append buttons to container
   container.appendChild(copyBtn)
