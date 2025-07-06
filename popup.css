@@ -131,7 +131,7 @@ main {
 .filter-container {
     display: flex;
     gap: var(--spacing-xs);
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-sm);
     overflow-x: auto;
     scrollbar-width: none;
 }
@@ -165,6 +165,74 @@ main {
     background: var(--color-surface-glass);
     color: var(--color-text-primary);
     border-color: var(--color-surface-border-hover);
+}
+
+/* Color Filter Container */
+.color-filter-container {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-lg);
+    align-items: center;
+}
+
+.color-filter-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    border: 2px solid transparent;
+    border-radius: var(--effect-border-radius-small);
+    cursor: pointer;
+    transition: var(--effect-transition);
+}
+
+.color-filter-btn:hover {
+    background: var(--color-surface-glass);
+    transform: scale(1.1);
+}
+
+.color-filter-btn.active {
+    border-color: var(--color-text-primary);
+    background: var(--color-surface-glass);
+}
+
+.color-filter-btn .color-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Clear Filters Button */
+.clear-filters-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-md);
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--color-surface-border);
+    border-radius: var(--effect-border-radius-small);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: var(--effect-transition);
+}
+
+.clear-filters-btn:hover {
+    background: var(--color-surface-glass);
+    color: var(--color-text-primary);
+    border-color: var(--color-surface-border-hover);
+}
+
+.clear-filters-btn svg {
+    width: 14px;
+    height: 14px;
 }
 
 /* Actions */

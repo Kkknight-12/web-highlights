@@ -38,6 +38,28 @@
                 <button class="filter-btn" data-filter="week">This Week</button>
             </div>
 
+            <!-- Color filters -->
+            <div class="color-filter-container" id="colorFilterContainer">
+                <button class="color-filter-btn" data-color="yellow" title="Yellow highlights">
+                    <span class="color-dot" style="background: #FFD93D;"></span>
+                </button>
+                <button class="color-filter-btn" data-color="green" title="Green highlights">
+                    <span class="color-dot" style="background: #6BCF7F;"></span>
+                </button>
+                <button class="color-filter-btn" data-color="blue" title="Blue highlights">
+                    <span class="color-dot" style="background: #4A90E2;"></span>
+                </button>
+                <button class="color-filter-btn" data-color="pink" title="Pink highlights">
+                    <span class="color-dot" style="background: #E91E63;"></span>
+                </button>
+                <button class="clear-filters-btn" id="clearFiltersBtn" style="display: none;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Clear
+                </button>
+            </div>
+
             <!-- Color breakdown section -->
             <div class="color-breakdown" id="colorBreakdown" style="display: none;">
                 <!-- Color indicators will be added dynamically -->

@@ -13,7 +13,8 @@ const state = {
   pageHighlightsList: [], // Array of highlights for current page
   allHighlightsList: [], // All highlights from all pages
   currentFilter: 'page', // Default to 'page' view
-  searchQuery: ''
+  searchQuery: '',
+  selectedColors: [] // Track selected color filters
 }
 
 // Initialize popup
@@ -108,6 +109,7 @@ function attachEventListeners() {
   const searchInput = document.getElementById('searchInput')
   searchInput.addEventListener('input', (e) => {
     state.searchQuery = e.target.value.toLowerCase()
+    updateClearButtonVisibility()
     renderHighlightsList()
   })
   
@@ -124,6 +126,56 @@ function attachEventListeners() {
       renderHighlightsList()
     })
   })
+  
+  // Color filter buttons
+  document.querySelectorAll('.color-filter-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const button = e.currentTarget
+      const color = button.dataset.color
+      
+      // Toggle color in selected colors
+      if (state.selectedColors.includes(color)) {
+        // Remove color from filter
+        state.selectedColors = state.selectedColors.filter(c => c !== color)
+        button.classList.remove('active')
+      } else {
+        // Add color to filter
+        state.selectedColors.push(color)
+        button.classList.add('active')
+      }
+      
+      // Show/hide clear button based on active filters
+      updateClearButtonVisibility()
+      
+      // Re-render list with new filters
+      renderHighlightsList()
+    })
+  })
+  
+  // Clear filters button
+  const clearFiltersBtn = document.getElementById('clearFiltersBtn')
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', () => {
+      // Clear all color filters
+      state.selectedColors = []
+      
+      // Remove active class from all color buttons
+      document.querySelectorAll('.color-filter-btn').forEach(btn => {
+        btn.classList.remove('active')
+      })
+      
+      // Clear search input
+      const searchInput = document.getElementById('searchInput')
+      searchInput.value = ''
+      state.searchQuery = ''
+      
+      // Hide clear button
+      clearFiltersBtn.style.display = 'none'
+      
+      // Re-render list
+      renderHighlightsList()
+    })
+  }
   
   // Export highlights
   document.getElementById('exportHighlights').addEventListener('click', handleExport)
@@ -342,6 +394,16 @@ function showErrorState(message) {
   emptyState.querySelector('p').textContent = message
 }
 
+// Update clear button visibility based on active filters
+function updateClearButtonVisibility() {
+  const clearBtn = document.getElementById('clearFiltersBtn')
+  if (!clearBtn) return
+  
+  // Show clear button if we have active color filters or search query
+  const hasActiveFilters = state.selectedColors.length > 0 || state.searchQuery.length > 0
+  clearBtn.style.display = hasActiveFilters ? 'flex' : 'none'
+}
+
 // Render highlights list
 function renderHighlightsList() {
   const highlightsList = document.getElementById('highlightsList')
@@ -360,10 +422,17 @@ function renderHighlightsList() {
     )
   }
   
+  // Apply color filter
+  if (state.selectedColors.length > 0) {
+    filteredHighlights = filteredHighlights.filter(h => 
+      state.selectedColors.includes(h.color)
+    )
+  }
+  
   // Check if we have highlights
   if (filteredHighlights.length === 0) {
     // Show appropriate empty state
-    if (state.searchQuery || state.currentFilter !== 'all') {
+    if (state.searchQuery || state.selectedColors.length > 0 || state.currentFilter !== 'all') {
       document.getElementById('emptyStateCurrentPage').style.display = 'block'
       const emptyText = document.querySelector('#emptyStateCurrentPage p')
       emptyText.textContent = 'No highlights found'
