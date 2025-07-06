@@ -25,6 +25,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden; /* Prevent container scroll */
+    position: relative;
 }
 
 /* Header */
@@ -77,10 +78,10 @@ h1 {
 
 /* Main Content */
 main {
-    padding: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
     background: var(--color-primary-dark);
     flex: 1; /* Take available space */
     min-height: 0; /* Allow shrinking */
@@ -171,7 +172,7 @@ main {
 .color-filter-container {
     display: flex;
     gap: var(--spacing-xs);
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
     align-items: center;
 }
 
@@ -238,17 +239,12 @@ main {
 /* Actions */
 .actions-container {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* Clear Actions */
-.clear-actions {
-    display: flex;
     gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
 }
 
-.clear-btn {
+/* All action buttons share equal width */
+.action-button {
     flex: 1;
 }
 
@@ -262,19 +258,28 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--spacing-sm);
+    gap: 4px;
     width: 100%;
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-sm) var(--spacing-sm);
     background: var(--color-surface-glass);
     backdrop-filter: blur(var(--effect-blur));
     -webkit-backdrop-filter: blur(var(--effect-blur));
     border: 1px solid var(--color-surface-border);
     border-radius: var(--effect-border-radius);
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
     color: var(--color-text-primary);
     cursor: pointer;
     transition: var(--effect-transition);
+}
+
+.action-button svg {
+    width: 14px;
+    height: 14px;
+}
+
+.action-text {
+    font-size: var(--font-size-sm);
 }
 
 .action-button:hover {
@@ -394,6 +399,7 @@ main {
     align-items: flex-start;
     gap: var(--spacing-sm);
     padding: var(--spacing-md);
+    padding-right: 36px; /* Make room for arrow */
     background: var(--color-surface-glass);
     backdrop-filter: blur(var(--effect-blur));
     -webkit-backdrop-filter: blur(var(--effect-blur));
@@ -407,7 +413,25 @@ main {
 .highlight-item:hover {
     background: var(--color-surface-glass-hover);
     border-color: var(--color-surface-border-hover);
-    /* Removed transform animation */
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Click hint indicator */
+.highlight-item::after {
+    content: "›";
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: var(--color-text-tertiary);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.highlight-item:hover::after {
+    opacity: 0.5;
 }
 
 /* Highlight Color Indicator */
@@ -836,4 +860,266 @@ main {
     to {
         transform: scaleX(0);
     }
+}
+
+/* Note Indicator in List View */
+.highlight-note-indicator {
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-text-secondary);
+    opacity: 0.8;
+}
+
+.highlight-note-indicator svg {
+    width: 12px;
+    height: 12px;
+}
+
+/* Detail View Styles */
+.detail-view-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 320px;
+    height: 500px;
+    background: var(--color-primary-dark);
+    z-index: 100;
+    flex-direction: column;
+}
+
+.detail-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--color-surface-glass);
+    backdrop-filter: blur(var(--effect-blur));
+    -webkit-backdrop-filter: blur(var(--effect-blur));
+    border-bottom: 1px solid var(--color-surface-border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: transparent;
+    border: 1px solid var(--color-surface-border);
+    border-radius: var(--effect-border-radius-small);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: var(--effect-transition);
+}
+
+.back-button:hover {
+    background: var(--color-surface-glass);
+    border-color: var(--color-surface-border-hover);
+}
+
+.detail-content {
+    padding: var(--spacing-xl);
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.detail-highlight-text {
+    padding: var(--spacing-lg);
+    padding-left: calc(var(--spacing-lg) + 4px);
+    margin-bottom: var(--spacing-lg);
+    background: var(--color-surface-glass);
+    backdrop-filter: blur(var(--effect-blur));
+    -webkit-backdrop-filter: blur(var(--effect-blur));
+    border-radius: var(--effect-border-radius);
+    border: 1px solid var(--color-surface-border);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-primary);
+    position: relative;
+}
+
+.detail-metadata {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xl);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.detail-separator {
+    opacity: 0.5;
+}
+
+.detail-url {
+    opacity: 0.8;
+}
+
+/* Note Section */
+.detail-note-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.detail-note-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+}
+
+.detail-note-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: var(--spacing-md);
+    background: var(--color-surface-glass);
+    backdrop-filter: blur(var(--effect-blur));
+    -webkit-backdrop-filter: blur(var(--effect-blur));
+    border: 1px solid var(--color-surface-border);
+    border-radius: var(--effect-border-radius);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+    font-family: var(--font-family);
+    line-height: var(--line-height-relaxed);
+    resize: vertical;
+    transition: var(--effect-transition);
+}
+
+.detail-note-textarea::placeholder {
+    color: var(--color-text-tertiary);
+}
+
+.detail-note-textarea:focus {
+    outline: none;
+    border-color: var(--color-surface-border-hover);
+    background: var(--color-surface-glass-hover);
+}
+
+.detail-note-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--spacing-xs);
+}
+
+.detail-note-counter {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+}
+
+.detail-save-note-btn {
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: var(--color-surface-glass);
+    border: 1px solid var(--color-surface-border);
+    border-radius: var(--effect-border-radius-small);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: var(--effect-transition);
+}
+
+.detail-save-note-btn:hover {
+    background: var(--color-surface-glass-hover);
+    border-color: var(--color-surface-border-hover);
+}
+
+/* Color Section */
+.detail-color-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.detail-color-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+}
+
+.detail-color-picker {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.detail-color-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: var(--effect-transition);
+}
+
+.detail-color-btn:hover {
+    transform: scale(1.1);
+}
+
+.detail-color-btn.active {
+    border-color: var(--color-text-primary);
+    box-shadow: 0 0 0 2px var(--color-surface-glass);
+}
+
+/* Detail Actions */
+.detail-actions {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.detail-action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: var(--color-surface-glass);
+    backdrop-filter: blur(var(--effect-blur));
+    -webkit-backdrop-filter: blur(var(--effect-blur));
+    border: 1px solid var(--color-surface-border);
+    border-radius: var(--effect-border-radius);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: var(--effect-transition);
+}
+
+.detail-action-btn:hover {
+    background: var(--color-surface-glass-hover);
+    border-color: var(--color-surface-border-hover);
+}
+
+.detail-action-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #ef4444;
+}
+
+/* Scrollbar for detail view */
+.detail-view-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.detail-view-container::-webkit-scrollbar-track {
+    background: var(--color-surface-glass);
+    border-radius: 3px;
+}
+
+.detail-view-container::-webkit-scrollbar-thumb {
+    background: var(--color-surface-border);
+    border-radius: 3px;
+}
+
+.detail-view-container::-webkit-scrollbar-thumb:hover {
+    background: var(--color-surface-border-hover);
 }
