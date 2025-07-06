@@ -306,12 +306,20 @@
   box-shadow: var(--effect-shadow-large) !important;
 }
 
-/* Prevent any transitions on palette mode to avoid drag lag */
+/* Prevent any transitions on draggable elements to avoid lag */
 .palette-mode {
   transition: none !important;
 }
 
 .palette-mode.dragging {
+  transition: none !important;
+}
+
+.mini-toolbar {
+  transition: none !important;
+}
+
+.mini-toolbar.dragging {
   transition: none !important;
 }
 

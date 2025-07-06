@@ -3,7 +3,7 @@
  * Redux-based UI component for highlight actions
  */
 import { store } from '../../store/store'
-import { hideMiniToolbar, startDragging, stopDragging } from '../../store/uiSlice'
+import { hideMiniToolbar } from '../../store/uiSlice'
 import { createToolbarContainer } from '../ui/mini-toolbar-template.js'
 import { showElement, hideElement } from '../ui/visibility-manager.js'
 import { 
@@ -13,7 +13,6 @@ import {
   navigateToLink 
 } from '../actions/toolbar-actions.js'
 import { makeDraggable, ensureWithinViewport } from '../ui/draggable.js'
-import { saveElementPosition, loadSavedPositions } from '../utils/position-storage.js'
 
 class MiniToolbar {
   constructor() {
@@ -90,12 +89,9 @@ class MiniToolbar {
           this.setupDraggable()
         }
         
-        // Check if we have a saved position for this domain
-        const savedPosition = state.ui.miniToolbar.savedPosition
-        const displayPosition = savedPosition || position
-        
-        console.log('[MiniToolbar] Showing toolbar at:', displayPosition)
-        showElement(this.toolbar, displayPosition)
+        // Always show at calculated position
+        console.log('[MiniToolbar] Showing toolbar at:', position)
+        showElement(this.toolbar, position)
       } else {
         hideElement(this.toolbar)
         this.currentHighlightId = null
@@ -104,11 +100,8 @@ class MiniToolbar {
     }
   }
 
-  async init() {
+  init() {
     console.log('[MiniToolbar] Initializing')
-    
-    // Load saved positions first
-    await loadSavedPositions()
     
     // Create initial UI (without link options)
     this.createToolbarUI()
@@ -168,20 +161,10 @@ class MiniToolbar {
       this.dragCleanup()
     }
     
+    // Simple draggable - no callbacks, no state saving
+    // Only use drag handle if specified
     this.dragCleanup = makeDraggable(this.toolbar, {
-      storageKey: 'miniToolbar',
-      handle: this.toolbar.querySelector('.toolbar-drag-handle'),
-      onDragStart: () => {
-        // Don't update Redux during drag to avoid re-renders
-      },
-      onDrag: (position) => {
-        // No Redux updates during drag - just visual movement
-      },
-      onDragEnd: async (position) => {
-        // Only update Redux when drag is complete
-        store.dispatch(stopDragging({ element: 'miniToolbar', position }))
-        await saveElementPosition('miniToolbar', position)
-      }
+      handle: this.toolbar.querySelector('.toolbar-drag-handle')
     })
   }
 

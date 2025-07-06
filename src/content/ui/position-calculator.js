@@ -15,19 +15,15 @@ export function calculateButtonPosition(rect) {
 }
 
 export function calculateToolbarPosition(rect) {
-  const scrollX = window.pageXOffset || document.documentElement.scrollLeft
-  const scrollY = window.pageYOffset || document.documentElement.scrollTop
-  
+  // For fixed position elements, use viewport coordinates (not page coordinates)
   return {
-    x: rect.left + scrollX + (rect.width / 2) - 75, // Center toolbar
-    y: rect.bottom + scrollY + 5 // Below highlight
+    x: rect.left + (rect.width / 2) - 75, // Center toolbar
+    y: rect.bottom + 5 // Below highlight
   }
 }
 
 export function calculateColorPickerPosition(triggerRect, highlightId = null) {
-  const scrollX = window.pageXOffset || document.documentElement.scrollLeft
-  const scrollY = window.pageYOffset || document.documentElement.scrollTop
-  
+  // For fixed position elements, use viewport coordinates (not page coordinates)
   // Calculate color picker width: 4 colors * 24px + 3 gaps * 4px + padding 16px = 124px
   const pickerWidth = 124
   
@@ -50,24 +46,24 @@ export function calculateColorPickerPosition(triggerRect, highlightId = null) {
       
       // Center X position over the entire highlight
       const highlightCenterX = minLeft + (maxRight - minLeft) / 2
-      xPosition = highlightCenterX + scrollX - (pickerWidth / 2)
+      xPosition = highlightCenterX - (pickerWidth / 2)
       
-      // Position above the highlight by 50px (reduced from 65px)
-      yPosition = minTop + scrollY - 50
+      // Position above the highlight by 50px
+      yPosition = minTop - 50
     } else {
       // Fallback if highlight elements not found
-      xPosition = triggerRect.left + scrollX + (triggerRect.width / 2) - (pickerWidth / 2)
-      yPosition = triggerRect.top + scrollY - 50
+      xPosition = triggerRect.left + (triggerRect.width / 2) - (pickerWidth / 2)
+      yPosition = triggerRect.top - 50
     }
   } else {
     // Fallback: center on toolbar
-    xPosition = triggerRect.left + scrollX + (triggerRect.width / 2) - (pickerWidth / 2)
-    yPosition = triggerRect.top + scrollY - 50
+    xPosition = triggerRect.left + (triggerRect.width / 2) - (pickerWidth / 2)
+    yPosition = triggerRect.top - 50
   }
   
   return {
     x: xPosition, // Centered over highlighted text
-    y: yPosition // Reduced Y offset from 65px to 50px
+    y: yPosition // Above the highlight
   }
 }
 
