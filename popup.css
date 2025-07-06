@@ -242,6 +242,22 @@ main {
     gap: 10px;
 }
 
+/* Clear Actions */
+.clear-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.clear-btn {
+    flex: 1;
+}
+
+.clear-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #ef4444;
+}
+
 .action-button {
     display: flex;
     align-items: center;
@@ -649,4 +665,89 @@ main {
     margin-top: var(--spacing-lg);
     padding-top: var(--spacing-lg);
     border-top: 1px solid var(--color-surface-border);
+}
+
+/* Confirmation Dialog Styles */
+.confirmation-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+.confirmation-dialog {
+    background: var(--color-surface-glass);
+    backdrop-filter: blur(var(--effect-blur));
+    -webkit-backdrop-filter: blur(var(--effect-blur));
+    border: 1px solid var(--color-surface-border);
+    border-radius: var(--effect-border-radius);
+    padding: var(--spacing-xl);
+    min-width: 280px;
+    max-width: 320px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease;
+}
+
+.confirmation-dialog h3 {
+    margin: 0 0 var(--spacing-md) 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.confirmation-dialog p {
+    margin: 0 0 var(--spacing-lg) 0;
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+}
+
+.confirmation-dialog .highlight-count {
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.confirmation-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+}
+
+.confirmation-cancel,
+.confirmation-confirm {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--effect-border-radius-small);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: var(--effect-transition);
+    border: 1px solid var(--color-surface-border);
+}
+
+.confirmation-cancel {
+    background: transparent;
+    color: var(--color-text-secondary);
+}
+
+.confirmation-cancel:hover {
+    background: var(--color-surface-glass);
+    color: var(--color-text-primary);
+}
+
+.confirmation-confirm {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.confirmation-confirm:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
 }

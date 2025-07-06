@@ -179,6 +179,22 @@ function attachEventListeners() {
   
   // Export highlights
   document.getElementById('exportHighlights').addEventListener('click', handleExport)
+  
+  // Clear page highlights
+  const clearPageBtn = document.getElementById('clearPageHighlights')
+  if (clearPageBtn) {
+    clearPageBtn.addEventListener('click', () => {
+      handleClearHighlights('page')
+    })
+  }
+  
+  // Clear all highlights
+  const clearAllBtn = document.getElementById('clearAllHighlights')
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener('click', () => {
+      handleClearHighlights('all')
+    })
+  }
 }
 
 // Handle export functionality - shows export dialog
@@ -687,5 +703,119 @@ async function handleDeleteHighlight(highlightIds) {
     // TODO: Implement undo functionality
   } catch (error) {
     console.error('[Popup] Error deleting highlight:', error)
+  }
+}
+
+// Handle clear highlights (page or all)
+async function handleClearHighlights(scope) {
+  // Determine what we're clearing
+  const highlightsToClear = scope === 'page' ? state.pageHighlightsList : state.allHighlightsList
+  const count = highlightsToClear.length
+  
+  // Don't show dialog if no highlights
+  if (count === 0) {
+    return
+  }
+  
+  // Show confirmation dialog
+  showConfirmationDialog(scope, count)
+}
+
+// Show confirmation dialog for clear operations
+function showConfirmationDialog(scope, count) {
+  // Create dialog overlay
+  const overlay = document.createElement('div')
+  overlay.className = 'confirmation-dialog-overlay'
+  
+  const dialog = document.createElement('div')
+  dialog.className = 'confirmation-dialog'
+  
+  const title = scope === 'page' ? 'Clear Page Highlights?' : 'Clear All Highlights?'
+  const message = scope === 'page' 
+    ? `This will permanently delete <span class="highlight-count">${count} highlight${count !== 1 ? 's' : ''}</span> from the current page.`
+    : `This will permanently delete <span class="highlight-count">ALL ${count} highlight${count !== 1 ? 's' : ''}</span> from all pages.`
+  
+  dialog.innerHTML = `
+    <h3>${title}</h3>
+    <p>${message}</p>
+    <p>This action cannot be undone.</p>
+    
+    <div class="confirmation-actions">
+      <button class="confirmation-cancel">Cancel</button>
+      <button class="confirmation-confirm">Clear</button>
+    </div>
+  `
+  
+  overlay.appendChild(dialog)
+  document.body.appendChild(overlay)
+  
+  // Handle dialog actions
+  dialog.querySelector('.confirmation-cancel').addEventListener('click', () => {
+    overlay.remove()
+  })
+  
+  dialog.querySelector('.confirmation-confirm').addEventListener('click', async () => {
+    overlay.remove()
+    await performClearHighlights(scope)
+  })
+  
+  // Close on overlay click
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.remove()
+    }
+  })
+}
+
+// Perform the actual clear operation
+async function performClearHighlights(scope) {
+  try {
+    if (scope === 'page') {
+      // Clear current page highlights
+      if (!state.currentTab || !state.currentTab.url) return
+      
+      const currentUrl = normalizeUrl(state.currentTab.url)
+      
+      // Clear from storage
+      const updateData = {}
+      updateData[currentUrl] = []
+      updateData[state.currentTab.url] = [] // Clear both normalized and original URL
+      
+      await chrome.storage.local.set(updateData)
+      
+      // Send message to content script to remove all highlights from DOM
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+      chrome.tabs.sendMessage(tab.id, {
+        action: 'clearAllHighlights'
+      })
+      
+    } else {
+      // Clear all highlights from all pages
+      const allData = await chrome.storage.local.get(null)
+      
+      // Create update object to set all URL keys to empty arrays
+      const updateData = {}
+      for (const [key, value] of Object.entries(allData)) {
+        // Only clear URL keys (skip 'settings' etc)
+        if (key !== 'settings' && Array.isArray(value)) {
+          updateData[key] = []
+        }
+      }
+      
+      await chrome.storage.local.set(updateData)
+      
+      // Send message to current tab to clear DOM
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+      chrome.tabs.sendMessage(tab.id, {
+        action: 'clearAllHighlights'
+      })
+    }
+    
+    // Reload highlights and update UI
+    await loadHighlights()
+    renderHighlightsList()
+    
+  } catch (error) {
+    console.error('[Popup] Error clearing highlights:', error)
   }
 }

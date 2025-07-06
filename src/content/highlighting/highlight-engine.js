@@ -21,19 +21,36 @@ class HighlightEngine {
       const element = e.target.closest(COMPONENT_SELECTORS.HIGHLIGHT)
       if (!element) return
       
+      console.log('[HighlightEngine] Highlight clicked:', element.dataset.highlightId)
+      
+      // Always prevent default to stop immediate navigation
+      // This allows us to show the toolbar first and let user choose
       e.preventDefault()
       e.stopPropagation()
       
       const id = element.dataset.highlightId
       const rect = element.getBoundingClientRect()
       
+      // NEW: Check if highlight is inside a link element
+      // This enables the navigate button in the toolbar
+      const linkParent = element.closest('a')
+      const isLink = !!linkParent
+      
       // Show mini toolbar through Redux
+      // NEW: Pass link information to show navigate button when needed
+      // FIX: Use calculateToolbarPosition to get proper x,y coordinates
+      const toolbarPosition = {
+        x: rect.left + window.scrollX + (rect.width / 2) - 75, // Center toolbar
+        y: rect.bottom + window.scrollY + 5 // Below highlight
+      }
+      
+      console.log('[HighlightEngine] Showing mini toolbar at:', toolbarPosition, 'isLink:', isLink)
+      
       store.dispatch(showMiniToolbar({
-        position: {
-          top: rect.top + window.scrollY,
-          left: rect.left + rect.width / 2
-        },
-        highlightId: id
+        position: toolbarPosition,
+        highlightId: id,
+        isLink: isLink,
+        linkHref: isLink ? linkParent.href : null
       }))
     }
   }
@@ -43,6 +60,44 @@ class HighlightEngine {
     
     // Listen for DOM clicks on highlights
     document.addEventListener('click', this.handleHighlightClick, true)
+    
+    // Listen for messages from popup
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      switch (request.action) {
+        case 'removeHighlights':
+          // Remove specific highlights
+          if (request.highlightIds && Array.isArray(request.highlightIds)) {
+            request.highlightIds.forEach(id => {
+              removeHighlightElements(id)
+            })
+            sendResponse({ success: true })
+          }
+          break
+          
+        case 'clearAllHighlights':
+          // Remove all highlights from DOM
+          const allHighlights = document.querySelectorAll(COMPONENT_SELECTORS.HIGHLIGHT)
+          allHighlights.forEach(el => el.remove())
+          console.log(`[HighlightEngine] Cleared ${allHighlights.length} highlights from DOM`)
+          sendResponse({ success: true })
+          break
+          
+        case 'scrollToHighlight':
+          // Scroll to specific highlight
+          const element = document.querySelector(`[data-highlight-id="${request.highlightId}"]`)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            // Flash the highlight briefly
+            element.style.transition = 'opacity 0.3s'
+            element.style.opacity = '0.3'
+            setTimeout(() => {
+              element.style.opacity = '1'
+            }, 300)
+            sendResponse({ success: true })
+          }
+          break
+      }
+    })
   }
 
 
@@ -107,12 +162,10 @@ class HighlightEngine {
       
       // Log if there's a mismatch
       if (actualHighlightedText !== text) {
-        console.warn('[HighlightEngine] Text mismatch detected:', {
-          selected: text,
-          highlighted: actualHighlightedText,
-          selectedLength: text.length,
-          highlightedLength: actualHighlightedText.length
-        })
+        console.warn('[HighlightEngine] Text mismatch detected:', 
+          `selected: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}" (${text.length} chars) vs ` +
+          `highlighted: "${actualHighlightedText.substring(0, 50)}${actualHighlightedText.length > 50 ? '...' : ''}" (${actualHighlightedText.length} chars)`
+        )
       }
       
       // Recalculate position with the actual highlighted text
