@@ -226,7 +226,7 @@
   padding: var(--spacing-sm) !important;
   box-shadow: var(--effect-shadow-large) !important;
   animation: fadeInScale 0.15s ease-out !important;
-  gap: var(--spacing-xs) !important;
+  gap: var(--spacing-sm) !important; /* Increased from xs (4px) to sm (8px) */
 }
 
 .color-picker.visible {
@@ -252,6 +252,12 @@
   border-color: var(--color-surface-border-hover) !important;
   box-shadow: var(--effect-shadow-medium),
               inset 0 1px 1px var(--color-surface-glass-hover) !important;
+}
+
+/* Color grid spacing for mini toolbar color picker */
+.color-picker .color-grid {
+  display: flex !important;
+  gap: var(--spacing-sm) !important; /* 8px spacing between colors */
 }
 
 .color-btn::before {

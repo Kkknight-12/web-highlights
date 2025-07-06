@@ -57,8 +57,12 @@ export function showColorPickerForHighlight(highlightId, toolbarRect) {
     return
   }
 
-  // Pass the highlightId to the position calculator
-  const position = calculateColorPickerPosition(toolbarRect, highlightId)
+  // Use the mini toolbar's current position (wherever user dragged it)
+  // This way color picker appears exactly where the toolbar is
+  const position = {
+    x: toolbarRect.left,
+    y: toolbarRect.top
+  }
   
   // Show color picker via Redux
   store.dispatch(showColorPicker({
