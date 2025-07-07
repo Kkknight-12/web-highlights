@@ -141,6 +141,34 @@
                 </button>
             </div>
         </main>
+        
+        <!-- Keyboard Shortcuts Footer -->
+        <footer class="shortcuts-footer">
+            <button class="shortcuts-toggle" id="shortcutsToggle" title="Show keyboard shortcuts">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+                    <path d="M6 10h1m0 0h1m-1 0v4m6-4h1m0 0h1m-1 0v4m6-4h1m0 0h1m-1 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Shortcuts</span>
+            </button>
+            
+            <div class="shortcuts-list" id="shortcutsList" style="display: none;">
+                <div class="shortcut-item">
+                    <kbd class="shortcut-key">
+                        <span class="modifier platform-key">Ctrl</span>+<span class="modifier">Shift</span>+<span>H</span>
+                    </kbd>
+                    <span class="shortcut-desc">Highlight selection</span>
+                </div>
+                <div class="shortcut-item">
+                    <kbd class="shortcut-key">Esc</kbd>
+                    <span class="shortcut-desc">Clear selection</span>
+                </div>
+                <div class="shortcut-item">
+                    <kbd class="shortcut-key">Delete</kbd>
+                    <span class="shortcut-desc">Remove hovered highlight</span>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <!-- Detail View Container (hidden by default) -->

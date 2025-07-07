@@ -3,6 +3,11 @@ import { storage, tabs, contextMenus, safeStorageGet, safeStorageSet, safeSendTa
 
 console.log('[Web Highlighter] Background service worker started')
 
+// Test: Log all commands on startup
+chrome.commands.getAll((commands) => {
+  console.log('[Web Highlighter] All registered commands on startup:', commands)
+})
+
 // Handle extension installation
 chrome.runtime.onInstalled.addListener((details) => {
   console.log('[Web Highlighter] Extension installed:', details.reason)
@@ -16,6 +21,14 @@ chrome.runtime.onInstalled.addListener((details) => {
       }
     })
   }
+  
+  // Log registered commands
+  chrome.commands.getAll((commands) => {
+    console.log('[Web Highlighter] Registered commands:', commands)
+    commands.forEach(cmd => {
+      console.log(`[Web Highlighter] Command: ${cmd.name}, Shortcut: ${cmd.shortcut}, Description: ${cmd.description}`)
+    })
+  })
 })
 
 // Handle messages from content scripts
@@ -60,5 +73,29 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       action: 'highlightSelection',
       text: info.selectionText
     })
+  }
+})
+
+// Handle keyboard shortcuts
+chrome.commands.onCommand.addListener(async (command) => {
+  console.log('[Web Highlighter] Command received:', command)
+  
+  if (command === 'highlight-selection') {
+    console.log('[Web Highlighter] Highlight selection command triggered')
+    
+    // Get active tab
+    const [tab] = await tabs.query({ active: true, currentWindow: true })
+    console.log('[Web Highlighter] Active tab:', tab?.url)
+    
+    if (!tab) {
+      console.error('[Web Highlighter] No active tab found')
+      return
+    }
+    
+    // Send message to content script to highlight current selection
+    const result = await safeSendTabMessage(tab.id, {
+      action: 'highlightSelection'
+    })
+    console.log('[Web Highlighter] Message sent to content script, result:', result)
   }
 })

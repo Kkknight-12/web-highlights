@@ -142,18 +142,18 @@
 
 ### 3. **Options Menu (3-dots)** ⚙️ HIGH PRIORITY
 **Time Estimate**: 3-4 hours  
-**Status**: Not Started
+**Status**: ✅ COMPLETED
 
 **Core Options (Free Version)**:
-- [ ] Add 3-dots menu to each highlight item
-- [ ] "Pin to Top" - Keep highlight at top of list
-- [ ] "Archive" - Hide but keep highlight
-- [ ] "Hide Until Next Visit" - Temporary hide
-- [ ] "Copy Link" - Copy direct link to highlight
-- [ ] "Site Settings" submenu:
-  - [ ] Disable on this site
-  - [ ] Reset UI positions
-  - [ ] Hide popup on this site
+- [x] Add 3-dots menu to each highlight item
+- [x] "Pin to Top" - Keep highlight at top of list
+- [x] "Archive" - Hide but keep highlight
+- [x] "Hide Until Next Visit" - Temporary hide
+- [x] "Copy Link" - Copy direct link to highlight
+- [x] "Site Settings" submenu:
+  - [x] Disable on this site
+  - [x] Reset UI positions (via gear icon on highlight button)
+  - [x] Hide popup on this site (via gear icon on highlight button)
 
 **UI Requirements**:
 - Dropdown menu on click
@@ -171,15 +171,20 @@
 
 ### 4. **Keyboard Shortcuts** 🎹 MEDIUM PRIORITY
 **Time Estimate**: 2-3 hours  
-**Status**: Not Started
+**Status**: ✅ COMPLETED
 
 **Requirements**:
-- [ ] Ctrl/Cmd+Shift+H to highlight current selection
-- [ ] Escape to dismiss selection
-- [ ] Delete key to remove selected highlight
-- [ ] Arrow keys to navigate between highlights
-- [ ] Show shortcuts in popup footer
-- [ ] Add shortcuts help dialog
+- [x] Ctrl/Cmd+Shift+H to highlight current selection
+- [x] Escape to dismiss selection
+- [x] Delete key to remove selected highlight
+- [x] Show shortcuts in popup footer
+- [ ] Arrow keys to navigate between highlights (future enhancement)
+- [ ] Add shortcuts help dialog (future enhancement)
+
+**Implementation Notes**:
+- Keyboard shortcuts handled directly in content script for reliability
+- Works with both Ctrl and Cmd on Mac for flexibility
+- Shortcuts displayed dynamically in popup based on platform
 
 **Technical Notes**:
 - Use Chrome Commands API in manifest.json

@@ -17,6 +17,7 @@ import { HighlightRestorer } from './highlighting/highlight-restorer.js'
 import { HighlightButton } from './features/highlight-button.js'
 import { MiniToolbar } from './features/mini-toolbar.js'
 import { ColorPicker } from './features/color-picker.js'
+import { KeyboardShortcuts } from './features/keyboard-shortcuts.js'
 import { setupNavigationDetection } from './features/navigation.js'
 
 // Import styles
@@ -67,13 +68,19 @@ async function initialize() {
     highlightRestorer: new HighlightRestorer(),
     highlightButton: new HighlightButton(),
     miniToolbar: new MiniToolbar(),
-    colorPicker: new ColorPicker()
+    colorPicker: new ColorPicker(),
+    keyboardShortcuts: new KeyboardShortcuts()
   }
   
   // Initialize all components
   Object.values(components).forEach(component => {
     if (component.init) {
-      component.init()
+      // Pass highlight engine to keyboard shortcuts
+      if (component === components.keyboardShortcuts) {
+        component.init(components.highlightEngine)
+      } else {
+        component.init()
+      }
     }
   })
   
@@ -138,3 +145,51 @@ if (process.env.NODE_ENV === 'development') {
 
 // Export components for access by other scripts
 window.__webHighlighterComponents = components
+
+// Listen for messages from background script
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('[Web Highlighter] Message from background:', request)
+  
+  if (request.action === 'highlightSelection') {
+    console.log('[Web Highlighter] Highlight selection action received')
+    
+    // Visual feedback that shortcut was triggered
+    document.body.style.border = '3px solid red'
+    setTimeout(() => {
+      document.body.style.border = ''
+    }, 500)
+    
+    // Check if components are initialized
+    if (!components.highlightEngine) {
+      console.warn('[Web Highlighter] Components not initialized yet')
+      sendResponse({ success: false, error: 'Not initialized' })
+      return
+    }
+    
+    // Get current selection
+    const selection = window.getSelection()
+    const text = selection.toString().trim()
+    console.log('[Web Highlighter] Current selection text:', text)
+    console.log('[Web Highlighter] Selection object:', selection)
+    
+    if (text) {
+      // Get selected color from store
+      const state = store.getState()
+      const selectedColor = state.ui.selectedColor || 'yellow'
+      console.log('[Web Highlighter] Using color:', selectedColor)
+      
+      try {
+        // Create highlight
+        components.highlightEngine.createHighlight(text, selectedColor, selection)
+        console.log('[Web Highlighter] Highlight created successfully')
+        sendResponse({ success: true })
+      } catch (error) {
+        console.error('[Web Highlighter] Error creating highlight:', error)
+        sendResponse({ success: false, error: error.message })
+      }
+    } else {
+      console.log('[Web Highlighter] No text selected')
+      sendResponse({ success: false, error: 'No text selected' })
+    }
+  }
+})

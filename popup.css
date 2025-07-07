@@ -21,7 +21,7 @@ body {
 
 .popup-container {
     width: 320px;
-    height: 500px; /* Fixed height for consistency */
+    height: 540px; /* Increased height to accommodate footer */
     display: flex;
     flex-direction: column;
     overflow: hidden; /* Prevent container scroll */
@@ -744,6 +744,83 @@ main {
 
 .submenu-item {
     font-size: var(--font-size-small);
+}
+
+/* Keyboard Shortcuts Footer */
+.shortcuts-footer {
+    position: relative;
+    background: var(--color-primary-darker);
+    border-top: 1px solid var(--color-surface-border);
+    padding: var(--spacing-xs);
+}
+
+.shortcuts-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    width: 100%;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: var(--effect-transition);
+    border-radius: var(--effect-border-radius-small);
+}
+
+.shortcuts-toggle:hover {
+    background: var(--color-surface-glass);
+    color: var(--color-text-primary);
+}
+
+.shortcuts-list {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-surface-glass);
+    backdrop-filter: blur(var(--effect-blur));
+    -webkit-backdrop-filter: blur(var(--effect-blur));
+    border: 1px solid var(--color-surface-border);
+    border-radius: var(--effect-border-radius-small);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-xs);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.shortcut-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+}
+
+.shortcut-item:last-child {
+    margin-bottom: 0;
+}
+
+.shortcut-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 6px;
+    background: var(--color-primary-dark);
+    border: 1px solid var(--color-surface-border);
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--color-text-primary);
+}
+
+.shortcut-key .modifier {
+    font-weight: 600;
+}
+
+.shortcut-desc {
+    color: var(--color-text-secondary);
+    margin-left: var(--spacing-sm);
 }
 
 /* Site Settings Dialog */

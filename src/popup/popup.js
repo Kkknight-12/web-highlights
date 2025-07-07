@@ -178,4 +178,32 @@ function attachEventListeners() {
       handleUndo(state)
     })
   }
+  
+  // Keyboard shortcuts toggle
+  const shortcutsToggle = document.getElementById('shortcutsToggle')
+  const shortcutsList = document.getElementById('shortcutsList')
+  if (shortcutsToggle && shortcutsList) {
+    shortcutsToggle.addEventListener('click', () => {
+      const isVisible = shortcutsList.style.display !== 'none'
+      shortcutsList.style.display = isVisible ? 'none' : 'block'
+    })
+    
+    // Hide shortcuts when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!shortcutsToggle.contains(e.target) && !shortcutsList.contains(e.target)) {
+        shortcutsList.style.display = 'none'
+      }
+    })
+  }
+  
+  // Detect Mac vs Windows/Linux for keyboard shortcuts
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+  if (isMac) {
+    // Update modifier keys for Mac
+    document.querySelectorAll('.platform-key').forEach(key => {
+      if (key.textContent === 'Ctrl') {
+        key.textContent = 'Cmd'
+      }
+    })
+  }
 }
