@@ -12,6 +12,7 @@ import { wrapTextNodes, removeHighlightElements, changeHighlightColor } from './
 import { BLOCK_SELECTOR, COMPONENT_SELECTORS } from '../../utils/constants.js'
 import { sanitizeForStorage, sanitizeUrl } from '../../utils/text-sanitizer.js'
 import { calculateToolbarPosition } from '../ui/position-calculator.js'
+import { performanceMonitor } from '../../utils/performance-monitor.js'
 
 class HighlightEngine {
   constructor() {
@@ -198,8 +199,12 @@ class HighlightEngine {
 
 
   createHighlight(text, color = 'yellow', selection = window.getSelection()) {
+    // Start performance timing
+    const timing = performanceMonitor.startTiming('highlightCreation')
+    
     if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
       console.warn('[HighlightEngine] No valid selection')
+      performanceMonitor.endTiming(timing)
       return null
     }
     
@@ -209,6 +214,7 @@ class HighlightEngine {
     
     if (!text.trim()) {
       console.warn('[HighlightEngine] Empty selection')
+      performanceMonitor.endTiming(timing)
       return null
     }
     
@@ -233,7 +239,9 @@ class HighlightEngine {
       if (isCrossElement) {
         // Handle cross-element selections by creating separate highlights
         console.log('[HighlightEngine] Cross-element selection detected, creating separate highlights')
-        return this.createMultipleHighlights(range, color)
+        const result = this.createMultipleHighlights(range, color)
+        performanceMonitor.endTiming(timing)
+        return result
       }
       
       // Single element highlight
@@ -300,10 +308,18 @@ class HighlightEngine {
       selection.removeAllRanges()
       
       console.log(`[HighlightEngine] Created highlight: ${text}`)
+      
+      // End performance timing
+      const metric = performanceMonitor.endTiming(timing)
+      if (metric && metric.duration > 50) {
+        console.warn(`[HighlightEngine] Slow highlight creation: ${metric.duration.toFixed(2)}ms`)
+      }
+      
       return highlight
       
     } catch (error) {
       console.error('[HighlightEngine] Creation failed:', error)
+      performanceMonitor.endTiming(timing)
       return null
     }
   }

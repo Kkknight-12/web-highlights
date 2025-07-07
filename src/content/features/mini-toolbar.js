@@ -99,6 +99,11 @@ class MiniToolbar {
       }
     }
     
+    // Hide toolbar on scroll for consistency with highlight button
+    this.handleScroll = () => {
+      store.dispatch(hideMiniToolbar())
+    }
+    
     this.updateToolbarVisibility = () => {
       const state = store.getState()
       const { visible, position, highlightId, isLink, linkHref } = state.ui.miniToolbar
@@ -209,6 +214,9 @@ class MiniToolbar {
   attachEventListeners() {
     // Document clicks for hiding
     document.addEventListener('mousedown', this.handleMouseDown)
+    
+    // Hide on scroll for consistent behavior with highlight button
+    window.addEventListener('scroll', this.handleScroll, { passive: true })
     
     // Prevent toolbar clicks from bubbling to document
     // But don't interfere with button clicks
@@ -401,6 +409,7 @@ class MiniToolbar {
     
     // Remove document listeners
     document.removeEventListener('mousedown', this.handleMouseDown)
+    window.removeEventListener('scroll', this.handleScroll)
     window.removeEventListener('resize', this.handleResize)
   }
 }

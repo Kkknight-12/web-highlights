@@ -7,6 +7,7 @@ import { store } from '../../store/store'
 import { restoreHighlightElement, batchRestoreHighlights } from './dom-highlighter.js'
 import { findTextInContainer, getCleanText } from './text-finder.js'
 import { RESTORATION_TIMING } from '../../utils/constants.js'
+import { performanceMonitor } from '../../utils/performance-monitor.js'
 
 class HighlightRestorer {
   constructor() {
@@ -35,12 +36,15 @@ class HighlightRestorer {
 
   // NEW IMPLEMENTATION - Batch all highlight restorations together
   restoreHighlights() {
+    const timing = performanceMonitor.startTiming('highlightRestoration')
+    
     const state = store.getState()
     const url = window.location.href
     const highlights = state.highlights.byUrl[url] || []
     
     if (highlights.length === 0) {
       console.log('[HighlightRestorer] No highlights to restore')
+      performanceMonitor.endTiming(timing)
       return
     }
     
@@ -97,9 +101,17 @@ class HighlightRestorer {
         this.restoredCount += restoredCount
         
         console.log(`[HighlightRestorer] Restored ${restoredCount} highlights`)
+        
+        // End performance timing
+        const metric = performanceMonitor.endTiming(timing)
+        if (metric) {
+          const avgTime = metric.duration / highlights.length
+          console.log(`[HighlightRestorer] Restoration performance: ${metric.duration.toFixed(2)}ms total, ${avgTime.toFixed(2)}ms per highlight`)
+        }
       })
     } else {
       console.log('[HighlightRestorer] No valid highlights to restore')
+      performanceMonitor.endTiming(timing)
     }
   }
 

@@ -146,6 +146,13 @@ if (process.env.NODE_ENV === 'development') {
 // Export components for access by other scripts
 window.__webHighlighterComponents = components
 
+// Load performance commands in development
+if (process.env.NODE_ENV !== 'production') {
+  import('./commands/performance-commands.js').catch(err => {
+    console.log('[Web Highlighter] Performance commands not loaded:', err)
+  })
+}
+
 // Listen for messages from background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('[Web Highlighter] Message from background:', request)
