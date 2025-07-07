@@ -193,9 +193,6 @@ class HighlightButton {
     window.addEventListener('scroll', this.handleScroll, { passive: true })
   }
 
-
-
-
   updateButtonVisibility() {
     const state = store.getState()
     const { visible, position } = state.ui.highlightButton

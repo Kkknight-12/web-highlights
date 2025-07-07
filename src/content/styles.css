@@ -337,3 +337,117 @@ body.dragging-ui {
   -moz-user-select: none !important;
   -ms-user-select: none !important;
 }
+
+/* Note Field Styles */
+.note-field-container {
+  position: absolute !important;
+  top: 40px !important; /* Position below toolbar */
+  left: 0 !important;
+  width: 300px !important;
+  background: rgba(1, 22, 39, 0.95) !important; /* Increased opacity from 0.75 to 0.95 */
+  backdrop-filter: blur(var(--effect-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--effect-blur)) !important;
+  border: 1px solid var(--color-surface-border) !important;
+  border-radius: var(--effect-border-radius) !important;
+  padding: var(--spacing-sm) !important;
+  box-shadow: var(--effect-shadow-large) !important;
+  z-index: 2147483646 !important; /* One less than toolbar */
+  display: none;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.2s ease, transform 0.2s ease !important;
+}
+
+.note-field-container.visible {
+  display: block !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.note-field-input {
+  width: 100% !important;
+  min-height: 60px !important;
+  max-height: 120px !important;
+  padding: var(--spacing-xs) !important;
+  background: var(--color-surface-glass) !important;
+  border: 1px solid var(--color-surface-border) !important;
+  border-radius: 4px !important;
+  color: var(--color-text-primary) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  resize: vertical !important;
+  outline: none !important;
+  transition: border-color 0.2s ease !important;
+}
+
+.note-field-input:focus {
+  border-color: var(--color-surface-border-hover) !important;
+  background: var(--color-surface-glass-hover) !important;
+}
+
+.note-field-input::placeholder {
+  color: var(--color-text-secondary) !important;
+  opacity: 0.6 !important;
+}
+
+.note-field-counter {
+  margin-top: 4px !important;
+  font-size: 11px !important;
+  color: var(--color-text-secondary) !important;
+  text-align: right !important;
+}
+
+.note-field-counter.warning {
+  color: #ff6b6b !important;
+}
+
+.note-field-buttons {
+  display: flex !important;
+  gap: var(--spacing-xs) !important;
+  margin-top: var(--spacing-xs) !important;
+  justify-content: flex-end !important;
+}
+
+.note-field-btn {
+  padding: 4px 12px !important;
+  border: 1px solid var(--color-surface-border) !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  background: transparent !important;
+  color: var(--color-text-primary) !important;
+}
+
+.note-field-save {
+  background: var(--color-surface-glass) !important;
+  border-color: var(--color-surface-border-hover) !important;
+}
+
+.note-field-save:hover {
+  background: var(--color-surface-glass-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+.note-field-cancel:hover {
+  background: var(--color-surface-glass) !important;
+}
+
+/* Note indicator on toolbar button */
+.toolbar-btn[data-action="note"].has-note {
+  position: relative !important;
+}
+
+.toolbar-btn[data-action="note"].has-note::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 2px !important;
+  right: 2px !important;
+  width: 6px !important;
+  height: 6px !important;
+  background: #4ecdc4 !important;
+  border-radius: 50% !important;
+  border: 1px solid var(--color-primary-light) !important;
+}

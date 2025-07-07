@@ -44,6 +44,7 @@ export function getCleanText(element) {
   
   // Fall back to clone method if not cached
   const clone = element.cloneNode(true)
+
   // Remove all highlight spans from the clone
   clone.querySelectorAll(COMPONENT_SELECTORS.HIGHLIGHT_SPAN).forEach(span => {
     const parent = span.parentNode
@@ -512,4 +513,3 @@ function buildNormalizedPositionMap(originalText) {
   
   return positionMap
 }
-

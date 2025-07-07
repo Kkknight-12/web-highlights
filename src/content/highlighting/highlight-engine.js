@@ -19,8 +19,42 @@ class HighlightEngine {
     
     // Arrow function to preserve 'this' binding for proper event listener removal
     this.handleHighlightClick = (e) => {
+      /**
+       * CRITICAL FIX: Prevent highlight clicks when interacting with note field
+       * 
+       * Problem: When clicking save/cancel buttons in note field, the highlight underneath
+       * was also getting clicked, causing toolbar to reposition and lose the button click.
+       * 
+       * Root Cause: Highlight click handler uses capture phase (true flag), so it receives
+       * events before the note field can stop propagation in bubble phase.
+       * 
+       * Solution: Three-layer protection:
+       * 1. Direct check if click target is within note field
+       * 2. Flag-based system set by mousedown to ignore next click
+       * 3. Check if note field is already open for this highlight
+       */
+      
+      // Layer 1: Direct check if click is on note field or its children
+      if (e.target.closest('.note-field-container')) {
+        console.log('[HighlightEngine] Click on note field, ignoring')
+        return
+      }
+      
+      // Layer 2: Check flag set by mousedown event
+      if (this._ignoreNextHighlightClick) {
+        console.log('[HighlightEngine] Ignoring highlight click due to note field interaction')
+        return
+      }
+      
       const element = e.target.closest(COMPONENT_SELECTORS.HIGHLIGHT)
       if (!element) return
+      
+      // Layer 3: Check if note field already open for this highlight
+      const existingNoteField = document.querySelector('.note-field-container')
+      if (existingNoteField && existingNoteField.getAttribute('data-highlight-id') === element.dataset.highlightId) {
+        console.log('[HighlightEngine] Note field already open for this highlight, ignoring click')
+        return
+      }
       
       console.log('[HighlightEngine] Highlight clicked:', element.dataset.highlightId)
       
@@ -57,7 +91,34 @@ class HighlightEngine {
     console.log('[HighlightEngine] Initializing')
     
     // Listen for DOM clicks on highlights
+    // IMPORTANT: Using capture phase (true) to intercept events early
     document.addEventListener('click', this.handleHighlightClick, true)
+    
+    /**
+     * FIX: Mousedown listener to prevent highlight clicks during note field interaction
+     * 
+     * Why this works:
+     * - Mousedown fires before click
+     * - We detect mousedown on note field and set a flag
+     * - When click event fires milliseconds later, we check the flag
+     * - This prevents toolbar repositioning between mousedown and click
+     * 
+     * Timeline of events:
+     * 1. User presses mouse button on Save (mousedown)
+     * 2. This handler sets _ignoreNextHighlightClick = true
+     * 3. Click event fires
+     * 4. Highlight click handler checks flag and returns early
+     * 5. Button click handler executes successfully
+     */
+    document.addEventListener('mousedown', (e) => {
+      // If mousedown is on note field, set a flag to ignore the next click
+      if (e.target.closest('.note-field-container')) {
+        this._ignoreNextHighlightClick = true
+        setTimeout(() => {
+          this._ignoreNextHighlightClick = false
+        }, 100)
+      }
+    }, true)
     
     // Listen for messages from popup
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

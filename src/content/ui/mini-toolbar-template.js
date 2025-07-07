@@ -73,9 +73,13 @@ export function createToolbarContainer(options = {}) {
   // Remove button
   const removeBtn = createToolbarButton('remove', 'Remove highlight', ICONS.trash)
   
+  // Note button
+  const noteBtn = createToolbarButton('note', 'Add note', ICONS.note)
+  
   // Append buttons to container
   container.appendChild(copyBtn)
   container.appendChild(colorBtn)
+  container.appendChild(noteBtn)
   container.appendChild(removeBtn)
   
   return container

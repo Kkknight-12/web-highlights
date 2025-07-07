@@ -37,6 +37,7 @@
 - [x] Note indicator icon for highlights with notes
 - [x] Save/edit notes functionality
 - [x] Export notes with highlights
+- [x] **BONUS: Notes in Mini Toolbar** - Added expandable note field
 
 **Detail View Layout**:
 - Back button header
@@ -49,6 +50,55 @@
 - Update highlight data structure to include `note` field
 - Add view state management for list/detail navigation
 - Smooth transitions between views
+
+### 1.1 **Mini Toolbar Notes Feature** ✅ COMPLETED
+**What Made Save/Cancel Buttons Work**:
+
+**The Critical Fix**: Understanding event capture vs bubble phases in nested interactive elements.
+
+**Problem**: 
+- Highlight click handler used capture phase: `addEventListener('click', handler, true)`
+- This meant it received events BEFORE the note field could stop them
+- Timeline: mousedown → highlight clicks → toolbar moves → click fires on empty space
+
+**Solution - Three Protection Layers**:
+
+1. **Mousedown Flag System** (The Key Fix):
+   ```javascript
+   // Detect mousedown on note field BEFORE click happens
+   document.addEventListener('mousedown', (e) => {
+     if (e.target.closest('.note-field-container')) {
+       this._ignoreNextHighlightClick = true;
+       setTimeout(() => this._ignoreNextHighlightClick = false, 100);
+     }
+   }, true);
+   ```
+
+2. **Direct Click Detection**:
+   ```javascript
+   // In highlight click handler
+   if (e.target.closest('.note-field-container')) {
+     return; // Ignore clicks on note field
+   }
+   ```
+
+3. **Existing Note Field Check**:
+   ```javascript
+   // Prevent repositioning if note field already open
+   const existingNoteField = document.querySelector('.note-field-container');
+   if (existingNoteField && existingNoteField.getAttribute('data-highlight-id') === element.dataset.highlightId) {
+     return;
+   }
+   ```
+
+**Why It Works**:
+- Mousedown fires BEFORE click
+- We set a flag during mousedown
+- Highlight click handler sees flag and ignores the click
+- Toolbar doesn't move
+- Click event successfully hits the button
+
+**Key Insight**: The gap between mousedown and click is where UI problems happen. By intercepting at mousedown, we prevent the cascade of events that was breaking the buttons.
 
 ---
 

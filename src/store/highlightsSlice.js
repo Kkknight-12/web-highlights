@@ -72,6 +72,21 @@ const highlightsSlice = createSlice({
       }
     },
     
+    updateHighlightNote: (state, action) => {
+      const { url, id, note } = action.payload
+      const highlights = state.byUrl[url]
+      if (highlights) {
+        const highlight = highlights.find(h => h.id === id)
+        if (highlight) {
+          highlight.note = note
+          // Mark URL as dirty
+          if (!state.dirtyUrls.includes(url)) {
+            state.dirtyUrls.push(url)
+          }
+        }
+      }
+    },
+    
     setCurrentUrl: (state, action) => {
       state.currentUrl = action.payload
     },
@@ -130,7 +145,8 @@ const highlightsSlice = createSlice({
 export const { 
   addHighlight, 
   removeHighlight, 
-  updateHighlightColor, 
+  updateHighlightColor,
+  updateHighlightNote,
   setCurrentUrl,
   clearHighlights,
   clearDirtyFlags 
@@ -143,4 +159,8 @@ export const selectHighlightsByUrl = (state, url) => state.highlights.byUrl[url]
 export const selectCurrentHighlights = (state) => {
   const url = state.highlights.currentUrl || window.location.href
   return state.highlights.byUrl[url] || []
+}
+export const selectHighlightById = (state, url, id) => {
+  const highlights = state.highlights.byUrl[url] || []
+  return highlights.find(h => h.id === id)
 }
