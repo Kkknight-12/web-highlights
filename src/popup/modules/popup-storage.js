@@ -19,10 +19,18 @@ export async function loadHighlights(state) {
     const allHighlights = []
     let totalCount = 0
     
+    // NEW: Extract options menu state if available
+    if (allData.optionsMenuState) {
+      state.pinnedHighlights = allData.optionsMenuState.pinnedHighlights || []
+      state.archivedHighlights = allData.optionsMenuState.archivedHighlights || []
+      state.hiddenHighlights = allData.optionsMenuState.hiddenHighlights || []
+      state.siteSettings = allData.optionsMenuState.siteSettings || {}
+    }
+    
     // The storage format is { [url]: highlights[] }
     for (const [key, value] of Object.entries(allData)) {
-      // Skip non-URL keys like 'settings'
-      if (key === 'settings' || !Array.isArray(value)) continue
+      // Skip non-URL keys like 'settings' or 'optionsMenuState'
+      if (key === 'settings' || key === 'optionsMenuState' || !Array.isArray(value)) continue
       
       // Add URL to each highlight for reference
       if (Array.isArray(value)) {
@@ -73,4 +81,22 @@ export function setupStorageListener(loadHighlightsFn, updateStatsFn) {
       loadHighlightsFn().then(updateStatsFn)
     }
   })
+}
+
+// NEW: Save options menu state
+export async function saveOptionsMenuState(state) {
+  try {
+    const optionsMenuState = {
+      pinnedHighlights: state.pinnedHighlights || [],
+      archivedHighlights: state.archivedHighlights || [],
+      hiddenHighlights: state.hiddenHighlights || [],
+      siteSettings: state.siteSettings || {}
+    }
+    
+    await chrome.storage.local.set({ optionsMenuState })
+    return true
+  } catch (error) {
+    console.error('[Popup] Error saving options menu state:', error)
+    return false
+  }
 }

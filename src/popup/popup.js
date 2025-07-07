@@ -65,12 +65,32 @@ function attachEventListeners() {
   // Filter buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      // Remove active class from all buttons
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'))
+      const button = e.currentTarget
+      
+      // Special handling for archive toggle
+      if (button.id === 'archiveToggle') {
+        // Toggle archive view
+        state.showArchived = !state.showArchived
+        button.classList.toggle('active', state.showArchived)
+        
+        // Update button label
+        const label = button.querySelector('.archive-label')
+        if (label) {
+          label.textContent = state.showArchived ? 'Active' : 'Archive'
+        }
+        
+        // Re-render list
+        renderHighlightsList(state)
+        return
+      }
+      
+      // Normal filter buttons
+      // Remove active class from all non-archive buttons
+      document.querySelectorAll('.filter-btn:not(.archive-toggle)').forEach(b => b.classList.remove('active'))
       // Add active class to clicked button
-      e.target.classList.add('active')
+      button.classList.add('active')
       // Update filter state
-      state.currentFilter = e.target.dataset.filter
+      state.currentFilter = button.dataset.filter
       // Re-render list
       renderHighlightsList(state)
     })

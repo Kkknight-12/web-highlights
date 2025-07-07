@@ -5,9 +5,10 @@
 
 import { COLORS } from '../../theme/theme-constants.js'
 import { truncateText, getRelativeTime } from './popup-utils.js'
-import { getFilteredHighlights, applyFilters } from './popup-filters.js'
+import { getFilteredHighlights, applyFilters, sortHighlights } from './popup-filters.js'
 import { handleCopyHighlight, handleDeleteHighlight, handleHighlightClick } from './popup-clear.js'
 import { showDetailView } from './popup-view-manager.js'
+import { createOptionsMenu } from './popup-options-menu.js'
 
 // Helper function to get highlight color
 function getHighlightColor(colorName) {
@@ -23,6 +24,16 @@ function createHighlightItem(highlight, state, renderHighlightsList) {
   // Add pending-delete class if this highlight is pending deletion
   if (state.pendingDeleteId === highlight.id) {
     item.classList.add('pending-delete')
+  }
+  
+  // NEW: Add pinned class if highlight is pinned
+  if (state.pinnedHighlights?.includes(highlight.id)) {
+    item.classList.add('pinned')
+  }
+  
+  // NEW: Add archived class if highlight is archived
+  if (state.archivedHighlights?.includes(highlight.id)) {
+    item.classList.add('archived')
   }
   
   item.dataset.highlightId = highlight.id
@@ -70,6 +81,22 @@ function createHighlightItem(highlight, state, renderHighlightsList) {
     metadata.appendChild(noteIndicator)
   }
   
+  // NEW: Add pinned indicator
+  if (state.pinnedHighlights?.includes(highlight.id)) {
+    const pinnedIndicator = document.createElement('span')
+    pinnedIndicator.className = 'highlight-pinned-indicator'
+    pinnedIndicator.innerHTML = `
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2v10m0 0l-3-3m3 3l3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="8" y="14" width="8" height="8" rx="1" fill="currentColor"/>
+      </svg>
+    `
+    pinnedIndicator.title = 'Pinned'
+    
+    metadata.appendChild(document.createTextNode(' • '))
+    metadata.appendChild(pinnedIndicator)
+  }
+  
   // Create actions container
   const actions = document.createElement('div')
   actions.className = 'highlight-actions'
@@ -103,9 +130,13 @@ function createHighlightItem(highlight, state, renderHighlightsList) {
     handleDeleteHighlight(highlight.id, state)
   })
   
+  // NEW: Add options menu
+  const optionsMenu = createOptionsMenu(highlight, state)
+  
   // Append elements
   actions.appendChild(copyBtn)
   actions.appendChild(deleteBtn)
+  actions.appendChild(optionsMenu)
   
   content.appendChild(text)
   content.appendChild(metadata)
@@ -162,10 +193,8 @@ export function renderHighlightsList(state) {
   // Show highlights list
   highlightsList.style.display = 'block'
   
-  // Sort highlights by timestamp (newest first)
-  const sortedHighlights = [...filteredHighlights].sort((a, b) => 
-    (b.timestamp || 0) - (a.timestamp || 0)
-  )
+  // Sort highlights with pinned items first, then by timestamp
+  const sortedHighlights = sortHighlights(filteredHighlights, state)
   
   // No need to manage scrollable class - CSS handles it automatically
   

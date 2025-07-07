@@ -18,7 +18,13 @@ export const state = {
   undoTimer: null, // Timer for auto-dismiss
   pendingDeleteId: null, // ID of highlight pending deletion (during undo period)
   currentView: 'list', // 'list' or 'detail'
-  selectedHighlight: null // Currently selected highlight for detail view
+  selectedHighlight: null, // Currently selected highlight for detail view
+  // NEW: Options menu state
+  pinnedHighlights: [], // Array of pinned highlight IDs
+  archivedHighlights: [], // Array of archived highlight IDs
+  hiddenHighlights: [], // Array of temporarily hidden highlight IDs
+  siteSettings: {}, // Per-domain settings
+  showArchived: false // Toggle to show archived highlights
 }
 
 // State update functions

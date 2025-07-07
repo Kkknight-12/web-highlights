@@ -6,6 +6,7 @@
 import { store } from '../store/store'
 import { loadHighlights, setCurrentUrl } from '../store/highlightsSlice'
 import { RESTORATION_TIMING } from '../utils/constants.js'
+import { isExtensionDisabledForSite } from '../utils/site-settings.js'
 
 // Import theme manager - initializes automatically
 import themeManager from '../theme/theme-manager.js'
@@ -44,6 +45,13 @@ async function initialize() {
   
   // Skip chrome:// pages
   if (window.location.href.startsWith('chrome://')) {
+    return
+  }
+  
+  // NEW: Check if extension is disabled for this site
+  const isDisabled = await isExtensionDisabledForSite()
+  if (isDisabled) {
+    console.log('[Web Highlighter] Extension disabled for this site')
     return
   }
   

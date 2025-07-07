@@ -31,7 +31,12 @@ const highlightsSlice = createSlice({
     currentUrl: null,
     loading: false,
     error: null,
-    dirtyUrls: [] // Track which URLs have unsaved changes (using array instead of Set for Redux serialization)
+    dirtyUrls: [], // Track which URLs have unsaved changes (using array instead of Set for Redux serialization)
+    // NEW: Options menu features
+    pinnedHighlights: [], // Array of pinned highlight IDs
+    archivedHighlights: [], // Array of archived highlight IDs
+    hiddenHighlights: [], // Array of temporarily hidden highlight IDs (session-based)
+    siteSettings: {} // Per-domain settings { domain: { disabled: bool, hidePopup: bool } }
   },
   reducers: {
     addHighlight: (state, action) => {
@@ -113,6 +118,50 @@ const highlightsSlice = createSlice({
     clearDirtyFlags: (state) => {
       // Clear all dirty flags after successful save
       state.dirtyUrls = []
+    },
+    
+    // NEW: Pin/unpin highlight
+    togglePinHighlight: (state, action) => {
+      const { id } = action.payload
+      const index = state.pinnedHighlights.indexOf(id)
+      if (index === -1) {
+        state.pinnedHighlights.push(id)
+      } else {
+        state.pinnedHighlights.splice(index, 1)
+      }
+    },
+    
+    // NEW: Archive/unarchive highlight
+    toggleArchiveHighlight: (state, action) => {
+      const { id } = action.payload
+      const index = state.archivedHighlights.indexOf(id)
+      if (index === -1) {
+        state.archivedHighlights.push(id)
+      } else {
+        state.archivedHighlights.splice(index, 1)
+      }
+    },
+    
+    // NEW: Hide highlight until next visit (session-based)
+    hideHighlightUntilNextVisit: (state, action) => {
+      const { id } = action.payload
+      if (!state.hiddenHighlights.includes(id)) {
+        state.hiddenHighlights.push(id)
+      }
+    },
+    
+    // NEW: Update site settings
+    updateSiteSettings: (state, action) => {
+      const { domain, settings } = action.payload
+      state.siteSettings[domain] = {
+        ...state.siteSettings[domain],
+        ...settings
+      }
+    },
+    
+    // NEW: Clear hidden highlights (for new session)
+    clearHiddenHighlights: (state) => {
+      state.hiddenHighlights = []
     }
   },
   
@@ -149,7 +198,13 @@ export const {
   updateHighlightNote,
   setCurrentUrl,
   clearHighlights,
-  clearDirtyFlags 
+  clearDirtyFlags,
+  // NEW: Options menu actions
+  togglePinHighlight,
+  toggleArchiveHighlight,
+  hideHighlightUntilNextVisit,
+  updateSiteSettings,
+  clearHiddenHighlights
 } = highlightsSlice.actions
 
 export default highlightsSlice.reducer

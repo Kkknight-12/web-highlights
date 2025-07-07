@@ -54,5 +54,33 @@ export function applyFilters(highlights, state) {
     )
   }
   
+  // NEW: Filter out archived highlights (unless viewing archived)
+  if (!state.showArchived) {
+    const archivedIds = state.archivedHighlights || []
+    filtered = filtered.filter(h => !archivedIds.includes(h.id))
+  }
+  
+  // NEW: Filter out hidden highlights (session-based)
+  const hiddenIds = state.hiddenHighlights || []
+  filtered = filtered.filter(h => !hiddenIds.includes(h.id))
+  
   return filtered
+}
+
+// NEW: Sort highlights with pinned items first
+export function sortHighlights(highlights, state) {
+  const pinnedIds = state.pinnedHighlights || []
+  
+  return [...highlights].sort((a, b) => {
+    // Check if either is pinned
+    const aIsPinned = pinnedIds.includes(a.id)
+    const bIsPinned = pinnedIds.includes(b.id)
+    
+    // Pinned items come first
+    if (aIsPinned && !bIsPinned) return -1
+    if (!aIsPinned && bIsPinned) return 1
+    
+    // Otherwise sort by timestamp (newest first)
+    return (b.timestamp || 0) - (a.timestamp || 0)
+  })
 }
