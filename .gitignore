@@ -14,6 +14,12 @@ dist-ssr
 
 # Archive folder (temporary - will be deleted after testing)
 archive/
+archive-2025-01-01/
+archive-2025-01-02/
+
+# Development directories
+.claude/
+e2e-tests/
 
 # Editor directories and files
 .vscode/*
