@@ -13,6 +13,7 @@ import { renderHighlightsList } from './modules/popup-ui.js'
 import { updateClearButtonVisibility } from './modules/popup-ui-state.js'
 import { updateStats } from './modules/popup-utils.js'
 import { setupViewNavigation } from './modules/popup-view-manager.js'
+import { initSiteSettings } from './modules/popup-site-settings.js'
 
 // Set the executePendingDelete function to avoid circular dependency
 setExecutePendingDelete(executePendingDelete)
@@ -47,6 +48,9 @@ async function initializePopup() {
     
     // Setup view navigation
     setupViewNavigation()
+    
+    // Initialize site settings
+    initSiteSettings()
   } catch (error) {
     console.error('[Popup] Initialization error:', error)
   }

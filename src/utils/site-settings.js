@@ -35,8 +35,10 @@ export async function shouldHidePopupForSite() {
     const domain = window.location.hostname
     const data = await safeStorageGet('optionsMenuState')
     
-    if (data.optionsMenuState?.siteSettings?.[domain]?.hidePopup) {
-      console.log(`[Site Settings] Popup hidden for ${domain}`)
+    // Check both hidePopup and hideButton (for backward compatibility)
+    if (data.optionsMenuState?.siteSettings?.[domain]?.hidePopup || 
+        data.optionsMenuState?.siteSettings?.[domain]?.hideButton) {
+      console.log(`[Site Settings] Popup/button hidden for ${domain}`)
       return true
     }
     

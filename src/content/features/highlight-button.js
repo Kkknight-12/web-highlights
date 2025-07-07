@@ -11,6 +11,8 @@ import { showElement, hideElement } from '../ui/visibility-manager.js'
 import { saveColorPreference, loadColorPreference } from '../ui/storage-helper.js'
 import { highlightEngine } from '../highlighting/highlight-engine.js'
 import { makeDraggable } from '../ui/draggable.js'
+import { createSiteSettingsMenu, toggleSiteSettingsMenu } from '../ui/site-settings-menu.js'
+import { shouldHidePopupForSite } from '../../utils/site-settings.js'
 
 class HighlightButton {
   constructor() {
@@ -18,6 +20,7 @@ class HighlightButton {
     this.selectedColor = 'yellow'
     this.unsubscribe = null
     this.dragCleanup = null
+    this.isHiddenForSite = false
     
     // Arrow functions to preserve 'this' binding for proper event listener removal
     /* OLD IMPLEMENTATION - ISSUE: 10ms timeout too short for selection stability
@@ -46,7 +49,13 @@ class HighlightButton {
     // Also adds debug logging to help identify selection timing issues
     this.handleTextSelection = () => {
       // Use minimal delay for better responsiveness
-      setTimeout(() => {
+      setTimeout(async () => {
+        // Check if button should be hidden for this site
+        if (this.isHiddenForSite) {
+          console.log('[HighlightButton] Button hidden for this site - not showing')
+          return
+        }
+        
         const selection = window.getSelection()
         
         const selectionInfo = getSelectionInfo()
@@ -119,11 +128,19 @@ class HighlightButton {
     }
   }
 
-  init() {
+  async init() {
     console.log('[HighlightButton] Initializing')
     
+    // NEW: Check if button should be hidden for this site
+    const shouldHide = await shouldHidePopupForSite()
+    this.isHiddenForSite = shouldHide
+    if (shouldHide) {
+      console.log('[HighlightButton] Button hidden for this site')
+      return // Don't initialize if hidden
+    }
+    
     // Create UI
-    this.createUI()
+    await this.createUI()
     
     // Make draggable
     this.setupDraggable()
@@ -138,7 +155,7 @@ class HighlightButton {
     this.loadColorPreference()
   }
 
-  createUI() {
+  async createUI() {
     this.buttonContainer = createButtonContainer(this.selectedColor)
     
     // Add drag handle visual indicator
@@ -166,6 +183,10 @@ class HighlightButton {
       dragHandle.style.opacity = '0'
     })
     
+    // NEW: Add site settings menu
+    const settingsMenu = await createSiteSettingsMenu()
+    this.buttonContainer.appendChild(settingsMenu)
+    
     document.body.appendChild(this.buttonContainer)
   }
   
@@ -186,6 +207,18 @@ class HighlightButton {
     this.buttonContainer.querySelectorAll('.color-option').forEach(btn => {
       btn.addEventListener('click', this.handleColorSelect)
     })
+    
+    // NEW: Settings button click
+    const settingsBtn = this.buttonContainer.querySelector('.settings-btn')
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const menu = this.buttonContainer.querySelector('.site-settings-menu')
+        if (menu) {
+          toggleSiteSettingsMenu(menu)
+        }
+      })
+    }
     
     // Document events
     document.addEventListener('mouseup', this.handleTextSelection)
@@ -217,6 +250,13 @@ class HighlightButton {
     if (savedColor) {
       this.selectedColor = savedColor
       updateColorSelection(this.buttonContainer, savedColor)
+    }
+  }
+  
+  setHiddenForSite(hidden) {
+    this.isHiddenForSite = hidden
+    if (hidden && this.buttonContainer) {
+      hideElement(this.buttonContainer)
     }
   }
 

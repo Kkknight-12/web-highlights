@@ -128,6 +128,74 @@
   filter: drop-shadow(0 1px 2px var(--color-shadow-dark)) !important;
 }
 
+/* Settings button in palette */
+.palette-mode .settings-btn {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 12px !important;
+  border: 1.5px solid var(--color-surface-border-light) !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-left: 4px !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.palette-mode .settings-btn:hover {
+  transform: scale(1.1) !important;
+  border-color: var(--color-surface-border-hover) !important;
+  background: var(--color-surface-glass) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.palette-mode .settings-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* Site Settings Menu */
+.site-settings-menu {
+  position: absolute !important;
+  background: var(--color-primary-darker) !important;
+  backdrop-filter: blur(var(--effect-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--effect-blur)) !important;
+  border: 1px solid var(--color-surface-border) !important;
+  border-radius: var(--effect-border-radius) !important;
+  box-shadow: var(--effect-shadow-large) !important;
+  padding: var(--spacing-xs) !important;
+  min-width: 180px !important;
+  z-index: 2147483646 !important; /* One less than main UI */
+  animation: fadeInScale 0.15s ease-out !important;
+}
+
+.site-settings-item {
+  display: block !important;
+  width: 100% !important;
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+  background: transparent !important;
+  border: none !important;
+  color: var(--color-text-primary) !important;
+  font-family: var(--font-family) !important;
+  font-size: var(--font-size-base) !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+}
+
+.site-settings-item:hover {
+  background: var(--color-surface-glass) !important;
+  transform: translateX(2px) !important;
+}
+
+.site-settings-item:not(:last-child) {
+  border-bottom: 1px solid var(--color-surface-border) !important;
+}
+
 /* Main highlight button */
 .highlight-btn {
   display: flex !important;

@@ -5,6 +5,7 @@
 
 import { HIGHLIGHT_COLORS } from '../highlighting/highlight-constants.js'
 import { COLORS } from '../../theme/theme-constants.js'
+import { ICONS } from './icons.js'
 
 /* OLD IMPLEMENTATION - SECURITY ISSUE: Used innerHTML which could lead to XSS
 export function createButtonHTML(selectedColor = 'yellow') {
@@ -107,6 +108,13 @@ export function createButtonContainer(selectedColor = 'yellow') {
     const colorBtn = createColorOptionButton(color, config, color === selectedColor)
     container.appendChild(colorBtn)
   })
+  
+  // NEW: Add gear icon for site settings
+  const settingsBtn = document.createElement('button')
+  settingsBtn.className = 'settings-btn'
+  settingsBtn.setAttribute('title', 'Site settings')
+  settingsBtn.innerHTML = ICONS.gear
+  container.appendChild(settingsBtn)
   
   return container
 }

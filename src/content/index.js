@@ -135,3 +135,6 @@ window.addEventListener('unload', () => {
 if (process.env.NODE_ENV === 'development') {
   window.__webHighlighter = { store }
 }
+
+// Export components for access by other scripts
+window.__webHighlighterComponents = components

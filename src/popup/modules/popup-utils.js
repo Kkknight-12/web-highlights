@@ -44,3 +44,26 @@ export function updateStats() {
   // Stats have been replaced with search and filters
   // This function is kept for backward compatibility but does nothing
 }
+
+// Show toast notification
+export function showToast(message, duration = 3000) {
+  // Use existing undo toast element for notifications
+  const toast = document.getElementById('undoToast')
+  if (!toast) return
+  
+  const messageEl = toast.querySelector('.undo-message')
+  const undoBtn = toast.querySelector('.undo-button')
+  const progressBar = document.getElementById('undoProgressBar')
+  
+  if (messageEl) messageEl.textContent = message
+  if (undoBtn) undoBtn.style.display = 'none'
+  if (progressBar) progressBar.style.display = 'none'
+  
+  toast.style.display = 'block'
+  
+  setTimeout(() => {
+    toast.style.display = 'none'
+    if (undoBtn) undoBtn.style.display = 'block' // Reset for undo functionality
+    if (progressBar) progressBar.style.display = 'block'
+  }, duration)
+}
