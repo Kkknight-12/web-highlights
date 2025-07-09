@@ -90,7 +90,7 @@ https://github.com/Kkknight-12/web-highlights
 
 If you have questions about this privacy policy or the extension, please:
 - Open an issue on our GitHub repository
-- Email: [YOUR EMAIL HERE]
+- Email: mayanksarasiya@gmail.com
 
 ## Compliance
 
