@@ -204,6 +204,10 @@ export function createOptionsMenu(highlight, state) {
     }
   })
   
+  // Store reference to button in dropdown for positioning
+  dropdown.dataset.buttonId = `btn-${Date.now()}-${Math.random()}`
+  menuButton.dataset.buttonId = dropdown.dataset.buttonId
+  
   // Toggle menu on button click
   menuButton.addEventListener('click', (e) => {
     e.stopPropagation()
@@ -293,16 +297,32 @@ function createSiteSettingsSubmenu(url) {
  * Copy highlight link to clipboard
  */
 function copyHighlightLink(highlight) {
-  // Generate shareable link with highlight ID
-  const link = `${highlight.url}#highlight=${highlight.id}`
+  // OLD IMPLEMENTATION - Simply appended hash to URL
+  // const link = `${highlight.url}#highlight=${highlight.id}`
+  // ISSUE: This created double hash fragments if URL already had one
   
-  navigator.clipboard.writeText(link).then(() => {
-    // Show toast notification
+  // NEW IMPLEMENTATION - Properly handle existing fragments
+  try {
+    // Parse the URL to handle fragments correctly
+    const urlObj = new URL(highlight.url)
+    // Set the hash to include the highlight ID
+    urlObj.hash = `highlight=${highlight.id}`
+    const link = urlObj.toString()
+    
+    navigator.clipboard.writeText(link).then(() => {
+      // Show toast notification
+      showToast('Link copied to clipboard')
+    }).catch(err => {
+      console.error('Failed to copy link:', err)
+      showToast('Failed to copy link')
+    })
+  } catch (error) {
+    // Fallback for invalid URLs
+    console.error('Invalid URL:', error)
+    const link = `${highlight.url}#highlight=${highlight.id}`
+    navigator.clipboard.writeText(link)
     showToast('Link copied to clipboard')
-  }).catch(err => {
-    console.error('Failed to copy link:', err)
-    showToast('Failed to copy link')
-  })
+  }
 }
 
 /**
@@ -349,27 +369,53 @@ function toggleMenu(dropdown) {
  * Position dropdown to stay within viewport
  */
 function positionDropdown(dropdown) {
-  const rect = dropdown.getBoundingClientRect()
-  const containerRect = dropdown.parentElement.getBoundingClientRect()
+  // Get the button that triggered this dropdown using data attribute
+  const buttonId = dropdown.dataset.buttonId
+  const button = buttonId ? document.querySelector(`[data-button-id="${buttonId}"]`) : dropdown.previousElementSibling
+  if (!button) return
   
-  // Reset position
-  dropdown.style.right = '0'
-  dropdown.style.left = 'auto'
-  dropdown.style.top = '100%'
+  const buttonRect = button.getBoundingClientRect()
+  
+  // Move dropdown to body for proper z-index stacking
+  if (dropdown.parentElement !== document.body) {
+    document.body.appendChild(dropdown)
+  }
+  
+  // Set fixed positioning
+  dropdown.style.position = 'fixed'
+  dropdown.style.zIndex = '10000'
+  
+  // Calculate position relative to button
+  const dropdownWidth = 180 // min-width from CSS
+  const dropdownHeight = dropdown.offsetHeight || 200 // estimated height
+  
+  // Default position: below and right-aligned with button
+  let left = buttonRect.right - dropdownWidth
+  let top = buttonRect.bottom + 4
+  
+  // Ensure dropdown stays within viewport
+  const viewportWidth = window.innerWidth
+  const viewportHeight = window.innerHeight
+  const padding = 8
+  
+  // Horizontal positioning
+  if (left < padding) {
+    left = padding
+  }
+  if (left + dropdownWidth > viewportWidth - padding) {
+    left = viewportWidth - dropdownWidth - padding
+  }
+  
+  // Vertical positioning - if not enough space below, show above
+  if (top + dropdownHeight > viewportHeight - padding) {
+    top = buttonRect.top - dropdownHeight - 4
+  }
+  
+  // Apply calculated position
+  dropdown.style.left = `${left}px`
+  dropdown.style.top = `${top}px`
+  dropdown.style.right = 'auto'
   dropdown.style.bottom = 'auto'
-  
-  // Check if dropdown goes off screen
-  if (rect.bottom > window.innerHeight - 10) {
-    // Position above button
-    dropdown.style.top = 'auto'
-    dropdown.style.bottom = '100%'
-  }
-  
-  if (rect.right > window.innerWidth - 10) {
-    // Position to the left
-    dropdown.style.right = '0'
-    dropdown.style.left = 'auto'
-  }
 }
 
 /**
@@ -378,6 +424,23 @@ function positionDropdown(dropdown) {
 function closeAllMenus() {
   if (currentOpenMenu) {
     currentOpenMenu.style.display = 'none'
+    
+    // If dropdown was moved to body, move it back to its container
+    if (currentOpenMenu.parentElement === document.body) {
+      const buttonId = currentOpenMenu.dataset.buttonId
+      const button = document.querySelector(`[data-button-id="${buttonId}"]`)
+      if (button && button.parentElement) {
+        button.parentElement.appendChild(currentOpenMenu)
+        // Reset positioning
+        currentOpenMenu.style.position = ''
+        currentOpenMenu.style.left = ''
+        currentOpenMenu.style.top = ''
+        currentOpenMenu.style.right = ''
+        currentOpenMenu.style.bottom = ''
+        currentOpenMenu.style.zIndex = ''
+      }
+    }
+    
     currentOpenMenu = null
   }
 }

@@ -8,6 +8,7 @@ import { restoreHighlightElement, batchRestoreHighlights } from './dom-highlight
 import { findTextInContainer, getCleanText } from './text-finder.js'
 import { RESTORATION_TIMING } from '../../utils/constants.js'
 import { performanceMonitor } from '../../utils/performance-monitor.js'
+import { normalizeUrlForStorage } from '../../utils/text-sanitizer.js'
 
 class HighlightRestorer {
   constructor() {
@@ -39,8 +40,21 @@ class HighlightRestorer {
     const timing = performanceMonitor.startTiming('highlightRestoration')
     
     const state = store.getState()
-    const url = window.location.href
-    const highlights = state.highlights.byUrl[url] || []
+    // OLD IMPLEMENTATION - Used raw URL with fragments
+    // const url = window.location.href
+    // const highlights = state.highlights.byUrl[url] || []
+    // ISSUE: Would only find highlights if URL matched exactly including fragments
+    
+    // NEW IMPLEMENTATION - Use normalized URL for lookup
+    const normalizedUrl = normalizeUrlForStorage(window.location.href) || window.location.href
+    const highlights = state.highlights.byUrl[normalizedUrl] || []
+    
+    // Debug logging when highlights found via normalization
+    if (highlights.length > 0 && normalizedUrl !== window.location.href) {
+      console.log(`[HighlightRestorer] Found ${highlights.length} highlights via normalized URL`)
+      console.log(`[HighlightRestorer] Current URL: ${window.location.href}`)
+      console.log(`[HighlightRestorer] Normalized to: ${normalizedUrl}`)
+    }
     
     if (highlights.length === 0) {
       console.log('[HighlightRestorer] No highlights to restore')

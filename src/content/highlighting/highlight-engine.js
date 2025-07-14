@@ -10,7 +10,7 @@ import { generateHighlightId, HIGHLIGHT_COLORS } from './highlight-constants.js'
 import { getContainerInfo, findTextPositionInCleanText } from './text-finder.js'
 import { wrapTextNodes, removeHighlightElements, changeHighlightColor } from './dom-highlighter.js'
 import { BLOCK_SELECTOR, COMPONENT_SELECTORS } from '../../utils/constants.js'
-import { sanitizeForStorage, sanitizeUrl } from '../../utils/text-sanitizer.js'
+import { sanitizeForStorage, sanitizeUrl, normalizeUrlForStorage } from '../../utils/text-sanitizer.js'
 import { calculateToolbarPosition } from '../ui/position-calculator.js'
 import { performanceMonitor } from '../../utils/performance-monitor.js'
 
@@ -276,12 +276,21 @@ class HighlightEngine {
       const actualPosition = findTextPositionInCleanText(actualHighlightedText, containerInfo, range)
       
       // Create highlight object with sanitized data
+      // OLD IMPLEMENTATION - URL WITH HASH FRAGMENTS
+      // url: sanitizeUrl(window.location.href) || window.location.href, // Sanitize URL
+      // const url = window.location.href
+      // ISSUE: This stored highlights with hash fragments (#cite_note-17)
+      // making them invisible when visiting the page without the fragment
+      
+      // NEW IMPLEMENTATION - NORMALIZED URL FOR CONSISTENT STORAGE
+      const normalizedUrl = normalizeUrlForStorage(window.location.href) || window.location.href
+      
       const highlight = {
         id,
         text: sanitizeForStorage(actualHighlightedText), // Sanitize text for safe storage
         color,
         timestamp: Date.now(),
-        url: sanitizeUrl(window.location.href) || window.location.href, // Sanitize URL
+        url: normalizedUrl, // Use normalized URL for storage
         elements: elements.length,
         location: {
           container: containerInfo,
@@ -290,9 +299,8 @@ class HighlightEngine {
         }
       }
       
-      // Add to Redux store
-      const url = window.location.href
-      store.dispatch(addHighlight({ url, highlight }))
+      // Add to Redux store using normalized URL as key
+      store.dispatch(addHighlight({ url: normalizedUrl, highlight }))
       
       /* OLD IMPLEMENTATION - MANUAL SAVE AFTER EACH HIGHLIGHT
       // Save to storage
@@ -326,7 +334,10 @@ class HighlightEngine {
 
   createMultipleHighlights(range, color) {
     const highlights = []
-    const url = window.location.href
+    // OLD IMPLEMENTATION - Used raw URL with fragments
+    // const url = window.location.href
+    // NEW IMPLEMENTATION - Use normalized URL
+    const url = normalizeUrlForStorage(window.location.href) || window.location.href
     
     // Get all block elements in the range
     const blocks = this.getBlockElementsInRange(range)
@@ -447,7 +458,10 @@ class HighlightEngine {
 
 
   deleteHighlight(id) {
-    const url = window.location.href
+    // OLD IMPLEMENTATION - Used raw URL with fragments
+    // const url = window.location.href
+    // NEW IMPLEMENTATION - Use normalized URL
+    const url = normalizeUrlForStorage(window.location.href) || window.location.href
     
     // Remove from DOM
     const removed = removeHighlightElements(id)
@@ -476,7 +490,10 @@ class HighlightEngine {
   }
 
   changeHighlightColor(id, newColor) {
-    const url = window.location.href
+    // OLD IMPLEMENTATION - Used raw URL with fragments
+    // const url = window.location.href
+    // NEW IMPLEMENTATION - Use normalized URL
+    const url = normalizeUrlForStorage(window.location.href) || window.location.href
     
     // Update DOM
     const changed = changeHighlightColor(id, newColor)

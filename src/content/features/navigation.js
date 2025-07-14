@@ -3,21 +3,28 @@ import { store } from '../../store/store'
 import { loadHighlights, setCurrentUrl } from '../../store/highlightsSlice'
 import { HighlightRestorer } from '../highlighting/highlight-restorer.js'
 import { RESTORATION_TIMING } from '../../utils/constants.js'
+import { normalizeUrlForStorage } from '../../utils/text-sanitizer.js'
 
 export function setupNavigationDetection() {
-  let lastUrl = window.location.href
+  // OLD IMPLEMENTATION - Tracked raw URL with fragments
+  // let lastUrl = window.location.href
+  // NEW IMPLEMENTATION - Track normalized URL
+  let lastUrl = normalizeUrlForStorage(window.location.href) || window.location.href
   const highlightRestorer = new HighlightRestorer()
   
   const checkUrlChange = async () => {
-    const currentUrl = window.location.href
+    const currentRawUrl = window.location.href
+    const currentUrl = normalizeUrlForStorage(currentRawUrl) || currentRawUrl
+    
+    // Only trigger if normalized URL actually changed
     if (currentUrl !== lastUrl) {
       lastUrl = currentUrl
-      console.log('[Navigation] URL changed:', currentUrl)
+      console.log('[Navigation] URL changed:', currentRawUrl, '→ normalized:', currentUrl)
       
-      // Update current URL in store
+      // Update current URL in store with normalized URL
       store.dispatch(setCurrentUrl(currentUrl))
       
-      // Load highlights for new page
+      // Load highlights for new page using normalized URL
       await store.dispatch(loadHighlights(currentUrl))
       
       // Restore highlights after a short delay to ensure page content is ready

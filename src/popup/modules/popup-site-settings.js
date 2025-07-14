@@ -71,7 +71,19 @@ export async function showSiteSettingsDialog() {
     overlay.remove()
     
     // Show success message
-    showToast('Settings saved! Reload the page to apply changes.')
+    showToast('Settings saved! Reloading page...')
+    
+    // Reload the active tab to apply changes immediately
+    setTimeout(async () => {
+      try {
+        await chrome.tabs.reload(tab.id)
+        // Close popup after reload
+        window.close()
+      } catch (error) {
+        console.error('[SiteSettings] Failed to reload tab:', error)
+        showToast('Please reload the page manually to apply changes.')
+      }
+    }, 500) // Small delay to ensure toast is visible
   })
   
   // Handle cancel

@@ -302,6 +302,46 @@
 
 ---
 
+### 9. **Dynamic Site Handling** 🔄 MEDIUM PRIORITY
+**Time Estimate**: 3-4 hours  
+**Status**: Planning
+
+**Approach**: Graceful degradation instead of blacklisting
+
+**Tasks**:
+- [ ] Detect dynamic sites (React/Vue/Angular)
+- [ ] Show subtle warning on dynamic sites
+- [ ] Implement MutationObserver for better restoration
+- [ ] Add help documentation for common dynamic sites
+- [ ] Test on major dynamic platforms:
+  - [ ] Twitter/X
+  - [ ] Facebook
+  - [ ] Gmail
+  - [ ] Google Docs
+  - [ ] Notion
+  - [ ] YouTube
+
+**Implementation Ideas**:
+```javascript
+// Detect dynamic frameworks
+const isDynamicSite = !!(
+  window.React || 
+  window.Vue || 
+  window.angular ||
+  document.querySelector('[data-reactroot]')
+);
+
+// Show non-intrusive notification
+if (isDynamicSite) {
+  showNotification("Highlights may need refreshing on this dynamic site");
+}
+```
+
+**Store Description Update**:
+"Note: Works best on static content. Dynamic sites (like social media feeds) may require re-highlighting after page updates."
+
+---
+
 ### 9. **Documentation** 📚 MEDIUM PRIORITY
 **Time Estimate**: 2 hours  
 **Status**: Not Started

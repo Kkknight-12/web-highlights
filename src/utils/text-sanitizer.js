@@ -121,3 +121,60 @@ export function stripHtml(html) {
   div.innerHTML = html
   return div.textContent || ''
 }
+
+/**
+ * Normalize URL for storage consistency
+ * Removes hash fragments and normalizes the URL to ensure highlights
+ * are stored and retrieved consistently across URL variations
+ * @param {string} url - URL to normalize
+ * @returns {string|null} Normalized URL or null if invalid
+ */
+export function normalizeUrlForStorage(url) {
+  if (typeof url !== 'string') {
+    return null
+  }
+  
+  try {
+    const urlObj = new URL(url)
+    
+    // Only allow http, https, and file protocols
+    const allowedProtocols = ['http:', 'https:', 'file:']
+    if (!allowedProtocols.includes(urlObj.protocol)) {
+      return null
+    }
+    
+    // Build normalized URL without hash fragment
+    // Keep the origin and pathname, but remove hash and certain query params
+    let normalizedUrl = urlObj.origin + urlObj.pathname
+    
+    // Remove trailing slash for consistency
+    normalizedUrl = normalizedUrl.replace(/\/$/, '')
+    
+    // For Wikipedia and similar sites, preserve important query params
+    // but remove tracking/session parameters
+    if (urlObj.search) {
+      const params = new URLSearchParams(urlObj.search)
+      const importantParams = new URLSearchParams()
+      
+      // Keep only important params (like oldid for Wikipedia)
+      for (const [key, value] of params) {
+        // Keep params that affect content
+        if (['oldid', 'diff', 'action'].includes(key)) {
+          importantParams.set(key, value)
+        }
+        // Skip tracking and session params like:
+        // useskin, wprov, utm_*, fbclid, gclid, etc.
+      }
+      
+      const importantSearch = importantParams.toString()
+      if (importantSearch) {
+        normalizedUrl += '?' + importantSearch
+      }
+    }
+    
+    return normalizedUrl
+  } catch (e) {
+    console.error('[URL Normalizer] Invalid URL:', e)
+    return null
+  }
+}

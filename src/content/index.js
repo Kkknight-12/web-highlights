@@ -7,6 +7,7 @@ import { store } from '../store/store'
 import { loadHighlights, setCurrentUrl } from '../store/highlightsSlice'
 import { RESTORATION_TIMING } from '../utils/constants.js'
 import { isExtensionDisabledForSite } from '../utils/site-settings.js'
+import { normalizeUrlForStorage } from '../utils/text-sanitizer.js'
 
 // Import theme manager - initializes automatically
 import themeManager from '../theme/theme-manager.js'
@@ -60,7 +61,11 @@ async function initialize() {
   themeManager.init()
   
   // Set current URL in store
-  store.dispatch(setCurrentUrl(window.location.href))
+  // OLD IMPLEMENTATION - Used raw URL with fragments
+  // store.dispatch(setCurrentUrl(window.location.href))
+  // NEW IMPLEMENTATION - Use normalized URL
+  const normalizedUrl = normalizeUrlForStorage(window.location.href) || window.location.href
+  store.dispatch(setCurrentUrl(normalizedUrl))
   
   // Initialize components
   components = {
@@ -88,7 +93,10 @@ async function initialize() {
   setupNavigationDetection()
   
   // Load highlights for current page
-  await store.dispatch(loadHighlights(window.location.href))
+  // OLD IMPLEMENTATION - Used raw URL
+  // await store.dispatch(loadHighlights(window.location.href))
+  // NEW IMPLEMENTATION - Use normalized URL to load highlights
+  await store.dispatch(loadHighlights(normalizedUrl))
   
   /* OLD IMPLEMENTATION - Restored highlights immediately
   // Issue: Dynamic content might not be loaded yet when navigating back

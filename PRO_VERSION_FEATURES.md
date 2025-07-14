@@ -244,4 +244,57 @@ Users see upgrade prompts when:
 
 ---
 
+## 🔐 Additional Chrome Permissions Required for PRO
+
+When upgrading to PRO version, the following permissions will be added:
+
+### **scripting** permission
+Required for these PRO features:
+- CSS injection for custom styling (line 100)
+- Custom CSS per highlight (line 138)
+- Theme marketplace access (line 102)
+- Advanced highlight styles (lines 133-139)
+- White-label customization options (line 103)
+
+### **webNavigation** permission
+Required for these PRO features:
+- Search across ALL pages (lines 13-16) - Track and index highlights as you browse
+- Analytics & insights (lines 63-74) - Monitor highlighting patterns across sites
+- Reading speed insights (line 67) - Track time spent on pages
+- Page context saving (line 145) - Store scroll position and zoom level
+- Smart content detection (line 157) - Detect when pages load new content
+
+**Note**: These permissions are NOT required for the free version and have been removed to comply with Chrome Web Store's "narrowest permissions" policy. They will only be added when PRO features are implemented.
+
+---
+
+## 🎨 UI Library Considerations
+
+### Discussion Point: Low-Level UI Libraries
+We need to discuss whether to integrate a low-level UI library to handle complex UI interactions more robustly. Current issues like dropdown z-index stacking contexts could be better handled with dedicated libraries.
+
+**Potential Options:**
+1. **Alpine.js** (15KB) - Minimal framework, perfect with Tailwind CSS
+2. **Floating UI** (6KB) - Specialized for positioning (dropdowns, tooltips)
+3. **Tippy.js** (17KB) - Ready-made tooltips and dropdowns
+4. **Web Components** (Shoelace, Lit) - Native browser components
+5. **Headless UI alternatives** - Unstyled, accessible components
+
+**Benefits:**
+- Solve complex positioning issues (z-index, viewport boundaries)
+- Consistent behavior across browsers
+- Accessibility built-in (ARIA, keyboard navigation)
+- Reduced custom code maintenance
+- Better animation and transition support
+
+**Considerations:**
+- Additional bundle size (6-17KB typically)
+- Learning curve for library APIs
+- Dependency management
+- Chrome extension size limits
+
+**Recommendation:** Consider Alpine.js for PRO version features that require complex UI interactions, while keeping the free version lightweight with vanilla JS.
+
+---
+
 *Last Updated: January 2025*

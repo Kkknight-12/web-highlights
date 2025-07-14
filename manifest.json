@@ -8,8 +8,6 @@
     "storage",
     "activeTab",
     "contextMenus",
-    "scripting",
-    "webNavigation",
     "downloads"
   ],
   
@@ -35,14 +33,16 @@
     "default_icon": {
       "16": "assets/icons8-highlighter-16.png",
       "48": "assets/icons8-highlighter-48.png",
-      "128": "assets/icons8-highlighter-100.png"
+      "100": "assets/icons8-highlighter-100.png",
+      "128": "assets/icons8-highlighter-128.png"
     }
   },
   
   "icons": {
     "16": "assets/icons8-highlighter-16.png",
     "48": "assets/icons8-highlighter-48.png",
-    "128": "assets/icons8-highlighter-100.png"
+    "100": "assets/icons8-highlighter-100.png",
+    "128": "assets/icons8-highlighter-128.png"
   },
   
   "content_security_policy": {

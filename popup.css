@@ -436,7 +436,6 @@ main {
 .highlight-item:hover {
     background: var(--color-surface-glass-hover);
     border-color: var(--color-surface-border-hover);
-    transform: translateX(2px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -544,6 +543,12 @@ main {
     gap: 4px;
     opacity: 0;
     transition: opacity 0.2s ease;
+    position: relative;
+    /* OLD IMPLEMENTATION - Low z-index
+    z-index: 1;
+    */
+    /* NEW IMPLEMENTATION - Higher z-index to ensure dropdowns appear above other items */
+    z-index: 10;
 }
 
 .highlight-item:hover .highlight-actions {
@@ -629,6 +634,12 @@ main {
 /* Options Menu Styles */
 .options-menu-container {
     position: relative;
+    /* OLD IMPLEMENTATION - Low z-index caused dropdown to appear behind other elements
+    z-index: 2;
+    ISSUE: This created a stacking context that limited child dropdown z-index
+    */
+    /* NEW IMPLEMENTATION - Remove z-index to avoid stacking context issues */
+    /* Let the dropdown z-index (1100) work properly */
 }
 
 .options-menu-btn {
@@ -661,7 +672,11 @@ main {
     border-radius: var(--effect-border-radius);
     box-shadow: var(--effect-shadow-large);
     min-width: 180px;
-    z-index: 100;
+    /* OLD IMPLEMENTATION
+    z-index: 1100;
+    */
+    /* NEW IMPLEMENTATION - Ensure dropdown appears above all other elements */
+    z-index: 10000;
     overflow: hidden;
     animation: fadeInScale 0.2s ease;
 }
@@ -738,7 +753,11 @@ main {
     border-radius: var(--effect-border-radius);
     box-shadow: var(--effect-shadow-large);
     min-width: 160px;
-    z-index: 101;
+    /* OLD IMPLEMENTATION
+    z-index: 1101;
+    */
+    /* NEW IMPLEMENTATION - Match parent dropdown z-index */
+    z-index: 10001;
     display: none;
 }
 
