@@ -31,3 +31,16 @@ e2e-tests/
 *.njsproj
 *.sln
 *.sw?
+
+# Personal/Internal documentation files
+test-popup-fixes.html
+CHROME_STORE_SUBMISSION_CHECKLIST.md
+CODE_QUALITY_PERFORMANCE_ANALYSIS.md
+HIGHLIGHT_STORAGE_ANALYSIS.md
+PERMISSION_JUSTIFICATIONS.md
+PRO_VERSION_FEATURES.md
+REMAINING_TASKS.md
+Screenshot*.png
+URL_NORMALIZATION_FIX.md
+chrome-web-highlighter-v*.zip
+*.zip
